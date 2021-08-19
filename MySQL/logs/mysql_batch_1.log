@@ -1,0 +1,17 @@
+Run Time Set to: 330
+Starting Querying Data for 330 second ...
+Traceback (most recent call last):
+  File "/home/yonkovim/.local/lib/python3.6/site-packages/mysql/connector/connection_cext.py", line 516, in cmd_query
+    query_attrs=self._query_attrs)
+_mysql_connector.MySQLInterfaceError: Table definition has changed, please retry transaction
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "mysql_json_normalized_batch_updates.py", line 63, in <module>
+    cursor.execute(batch_load_votes)
+  File "/home/yonkovim/.local/lib/python3.6/site-packages/mysql/connector/cursor_cext.py", line 271, in execute
+    raw_as_string=self._raw_as_string)
+  File "/home/yonkovim/.local/lib/python3.6/site-packages/mysql/connector/connection_cext.py", line 519, in cmd_query
+    sqlstate=exc.sqlstate)
+mysql.connector.errors.DatabaseError: 1412 (HY000): Table definition has changed, please retry transaction
