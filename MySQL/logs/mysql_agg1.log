@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "mysql_json_normalized_aggregates.py", line 29, in <module>
+    if len(sys.argv) == 1:
+NameError: name 'sys' is not defined
