@@ -4,6 +4,7 @@ import os
 import time 
 import re
 import random
+import sys
 
 start_time = time.perf_counter()
 MYDSN = "dbname=movie_json_test user=movie_json_user password=Change_me_1st! host=127.0.0.1";

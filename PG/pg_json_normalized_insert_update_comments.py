@@ -8,6 +8,7 @@ import re
 import random
 import sys
 import getopt
+import string
 
 start_time = time.perf_counter()
 MYDSN = "dbname=movie_json_test user=movie_json_user password=Change_me_1st! host=127.0.0.1";
@@ -31,59 +32,63 @@ list_ids=[]
 #list of ids
 list_directors=[]
 movie_years= dict()
+ai_myids=[]
 
 current_time = 0
 debug = 0
 qry = 0;
 
-load_actors = "select actor_name from movies_normalized_actors where actor_name != ''"
-load_titles = "select title, imdb_id, year from movies_normalized_meta"
-load_ids = "select imdb_id from movies_normalized_meta"
-load_directors = "select director from movies_normalized_director"
+load_ids = "select ai_myid, imdb_id, year from movies_normalized_meta"
+comments_cleanup = "truncate movies_normalized_user_comments"
 
-find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
-find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
-
-
-print("Loading Actors...")
-
-cursor.execute(load_actors)
-
-for actor_name in cursor:
-        list_actors.append(actor_name);
+simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid,rating, comment ) values ( %s, %s, %s )"
+simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"
 
 print("Loading Titles & ID's...")
 
-cursor.execute(load_titles)
-for (movie_titles, imdb_id, mv_year) in cursor:
-        list_tiles.append(movie_titles);
+#load our movies so we can randomlys select one later on.
+cursor.execute(load_ids)
+for (ai_myid, imdb_id, mv_year) in cursor:
+        ai_myids.append(ai_myid);
         list_ids.append(imdb_id);
         movie_years[imdb_id] = mv_year
+
+#to prevent the comments from getting too big we will truncate it at the start of every run.  
+        
+cursor.execute(comments_cleanup)
                
 start_time = time.perf_counter()
+
+letters = string.ascii_lowercase
         
 print("Starting Querying Data for "+ str(time_to_run) + " second ...")
 while current_time < time_to_run : 
    current_time = time.perf_counter() - start_time
-   search_actor = random.choice(list_actors)
+   search_id = random.choice(list_ids)
    if debug == 1 :
-     print("Actor: " + str(search_actor[0]))
-   cursor.execute(find_movies_by_actor, search_actor)
+     print("imdb id: " + str(search_id))
+   cursor.execute(simulate_finding_a_movie_record, (search_id,))
    qry = qry + 1
-   for (title, imdb_rating, actor_character ) in cursor:
+   for ( ai_myid, imdb_id, year, title, json_column ) in cursor:
        if debug == 1 :
          print(" -> Movie: " + title);
-         
-   search_title = random.choice(list_tiles)
-   if debug == 1 :
-     print("Title search: " + str(search_title))
-
-   cursor.execute(find_movies_by_title, (search_title,))
+   comment = "".join(random.choice(letters) for i in range (random.randrange(20,40)))
+   uservote = random.randrange(0,10)
+   
+   cursor.execute(simulate_comment_on_movie,(ai_myid,uservote,comment))
    qry = qry + 1
-   for (imdb_id,title, imdb_rating ) in cursor:
-       if debug == 1 :
-         print(" -> Movie: " + title);
+   
+   if uservote < 6 :
+       downvote = 1
+       upvote = 0
+   else :
+       downvote = 0
+       upvote = 1
        
+   cursor.execute(simulate_updating_movie_record_with_vote,(upvote,downvote,ai_myid))
+   qry = qry + 1
+   cnx.commit()    
   # print("Query: " + str(qry))
 
 print("Ending Querying Data After "+ str(current_time) + " seconds ...  Finished " + str(qry) + " queries")

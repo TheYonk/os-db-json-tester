@@ -36,55 +36,36 @@ current_time = 0
 debug = 0
 qry = 0;
 
-load_actors = "select actor_name from movies_normalized_actors where actor_name != ''"
-load_titles = "select title, imdb_id, year from movies_normalized_meta"
-load_ids = "select imdb_id from movies_normalized_meta"
-load_directors = "select director from movies_normalized_director"
 
-find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
-find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
-
-
-print("Loading Actors...")
-
-cursor.execute(load_actors)
-
-for actor_name in cursor:
-        list_actors.append(actor_name);
-
-print("Loading Titles & ID's...")
-
-cursor.execute(load_titles)
-for (movie_titles, imdb_id, mv_year) in cursor:
-        list_tiles.append(movie_titles);
-        list_ids.append(imdb_id);
-        movie_years[imdb_id] = mv_year
+batch_load_votes = " insert into movies_normalized_aggregate_ratings select a.ai_myid, avg(rating), max(upvotes), max(downvotes), max(imdb_rating) from movies_normalized_meta a, movies_normalized_user_comments b where a.ai_myid = b.ai_myid group by a.ai_myid on conflict (ai_myid) do update set user_rating = EXCLUDED.user_rating, up_votes = EXCLUDED.up_votes, down_votes = EXCLUDED.down_votes, imdb_rating = EXCLUDED.imdb_rating"
+simulate_crappy_report = "select actor_name, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id  group by actor_name"
+simulate_crappy_report2 = "select actor_name, round(year/10,0)*10 as year, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id  group by actor_name, round(year/10,0)*10  having count(*) > 5 order by actor_name"
+# if we run longer then 1 hour, just do this batch every 15 minutes
+if (time_to_run>3600):
+    sleep_time = 900
+else :
+    #run 4 times per hour
+    sleep_time = int(time_to_run/4)
+    
                
 start_time = time.perf_counter()
         
 print("Starting Querying Data for "+ str(time_to_run) + " second ...")
 while current_time < time_to_run : 
    current_time = time.perf_counter() - start_time
-   search_actor = random.choice(list_actors)
-   if debug == 1 :
-     print("Actor: " + str(search_actor[0]))
-   cursor.execute(find_movies_by_actor, search_actor)
-   qry = qry + 1
-   for (title, imdb_rating, actor_character ) in cursor:
-       if debug == 1 :
-         print(" -> Movie: " + title);
-         
-   search_title = random.choice(list_tiles)
-   if debug == 1 :
-     print("Title search: " + str(search_title))
 
-   cursor.execute(find_movies_by_title, (search_title,))
-   qry = qry + 1
-   for (imdb_id,title, imdb_rating ) in cursor:
-       if debug == 1 :
-         print(" -> Movie: " + title);
-       
-  # print("Query: " + str(qry))
+   cursor.execute(batch_load_votes)
+   cnx.commit()
+  
+   cursor.execute(simulate_crappy_report)
 
+   cursor.execute(simulate_crappy_report2)
+   cnx.commit()    
+   
+   print("Batch Sleeping: " + str(sleep_time) + " seconds ")
+   time.sleep(sleep_time)
+   print("Batch Awoken from sleep")
+   
+   # print("Query: " + str(qry))
 print("Ending Querying Data After "+ str(current_time) + " seconds ...  Finished " + str(qry) + " queries")
    
