@@ -1,4 +1,4 @@
-from my_pg_connection import pg_get_read_only_cursor,benchmark_query_simple,benchmark_query_parms_list,benchmark_query_simple_UID,pg_get_cursor,pg_commit
+from my_pg_connection import pg_get_read_only_cursor,benchmark_query_simple,benchmark_query_parms_list,benchmark_query_simple_UID,pg_get_cursor,pg_commit,benchmark_query_parms_list_work_around
 
 import time 
 import random
@@ -29,7 +29,7 @@ QRY_TYPE_B_SINGLE_MOVIE =     "select * from movies_json_generated where title =
 QRY_TYPE_B_EXP_SINGLE_MOVIE = "select * from movies_json_generated where json_column->>'title' = 'Avengers: Endgame (2019)'"
 QRY_TYPE_C_SINGLE_MOVIE =     "select * from movies_normalized_meta where title = 'Avengers: Endgame (2019)'"
 
-QRY_TYPE_A_SINGLE_MOVIE_RND10 =     "select * from movies_jsonb where jsonb_column @@ '$.title == %s'"
+QRY_TYPE_A_SINGLE_MOVIE_RND10 =     "select * from movies_jsonb  where jsonb_column @> '{ \"title\" : %s }'"
 QRY_TYPE_B_SINGLE_MOVIE_RND10 =     "select * from movies_json_generated where title = %s"
 QRY_TYPE_B_EXP_SINGLE_MOVIE_RND10 = "select * from movies_json_generated where json_column->>'title' = %s"
 QRY_TYPE_C_SINGLE_MOVIE_RND10 =     "select * from movies_normalized_meta where title = %s"
@@ -43,42 +43,42 @@ QRY_TYPE_A_MOVIES_FOR_ACTOR =  "select imdb_id, jsonb_column->>'title', jsonb_co
 QRY_TYPE_B_MOVIES_FOR_ACTOR =  "select imdb_id, title, imdb_rating, t.* from movies_json_generated, jsonb_to_recordset((jsonb_column->>'cast'::text)::jsonb) as t(id text,name varchar(100),character text) where name = 'Robert Downey Jr.'"
 QRY_TYPE_C_MOVIES_FOR_ACTOR =  "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= 'Robert Downey Jr.'"
 
-QRY_TYPE_A_MOVIES_ACTOR_COUNT = "select year, t.name, count(*), avg(imdb_rating) from movies_jsonb, jsonb_to_recordset((jsonb_column->>'cast'::text)::jsonb) as t(id text,name varchar(100),character text) where name =  where t.name like %s group by  t.name "
-QRY_TYPE_B_MOVIES_ACTOR_COUNT = "select year, t.name, count(*), avg(imdb_rating) from movies_json_generated, jsonb_to_recordset((jsonb_column->>'cast'::text)::jsonb) as t(id text,name varchar(100),character text) where name =  where t.name like %s group by  t.name "
-QRY_TYPE_C_MOVIES_ACTOR_COUNT = "select year, actor_name, count(*), avg(imdb_rating) from movies_normalized_director a join movies_normalized_meta b on a.ai_myid = b.ai_myid where actor_name like %s group by actor_name "
-
+QRY_TYPE_A_MOVIES_ACTOR_COUNT = "select t.name, count(*), avg((jsonb_column->>'imdb_rating')::numeric) from movies_jsonb, jsonb_to_recordset((jsonb_column->>'cast'::text)::jsonb) as t(id text,name varchar(100),character text) where t.name = %s group by  t.name "
+QRY_TYPE_B_MOVIES_ACTOR_COUNT = "select t.name, count(*), avg(imdb_rating) from movies_json_generated, jsonb_to_recordset((jsonb_column->>'cast'::text)::jsonb) as t(id text,name varchar(100),character text) where t.name = %s group by  t.name "
+QRY_TYPE_C_MOVIES_ACTOR_COUNT = "select actor_name, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name = %s group by actor_name "
 
 GET_TITLES_LIST = "select jsonb_column->>'title' from movies_jsonb limit 5000"
 GET_ACTORS_LIST = "select actor_name from movies_normalized_actors limit 5000"
 
-loop_amount = 10
-current_loop = 0;
-list_titles = [];
+loop_amount = 100
+current_loop = 0
+list_titles = []
 list_actors = []
-parm_list = [];
+parm_list = []
+actor_count_list = [(('Robert Downey Jr.',),),  (('Marlon Brando',),),  (('Tom Cruise', ),), (('Ryan Reynolds',),),  (('Samuel L. Jackson',),)]
 
 
 #Run Benchmark to compare the queries from both JSON and JSONB using a fixed value
-results1 = benchmark_query_simple(QRY_TYPE_A_SINGLE_MOVIE,5,"Test of simple title select with JSONB Datatype, no GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_SINGLE_MOVIE,loop_amount,"Test of simple title select with JSONB Datatype, no GIN",1)
 
 print("creating gin index...")
 cursor2.execute(create_idx4)
 pg_commit()
 
-results1 = benchmark_query_simple(QRY_TYPE_A_SINGLE_MOVIE,5,"Test of simple title select with  JSONB Datatype, W/GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_SINGLE_MOVIE,loop_amount,"Test of simple title select with  JSONB Datatype, W/GIN",1)
 cursor2.execute(drop_idx4)
 pg_commit()
 
 
-results2 = benchmark_query_simple(QRY_TYPE_B_SINGLE_MOVIE,5,"Test of simple title select with  Generated Coluimn w/idx",1)
-results2 = benchmark_query_simple(QRY_TYPE_B_EXP_SINGLE_MOVIE,5,"Test of simple title select with  expression idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_SINGLE_MOVIE,loop_amount,"Test of simple title select with  Generated Coluimn w/idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_EXP_SINGLE_MOVIE,loop_amount,"Test of simple title select with  expression idx",1)
 
-results1 = benchmark_query_simple(QRY_TYPE_C_SINGLE_MOVIE,5,"Test of simple title select normalized table wo idx",1)
+results1 = benchmark_query_simple(QRY_TYPE_C_SINGLE_MOVIE,loop_amount,"Test of simple title select normalized table wo idx",1)
 
 print("creating title index...")
 cursor2.execute(create_idx1)
 pg_commit()
-results1 = benchmark_query_simple(QRY_TYPE_C_SINGLE_MOVIE,5,"Test of simple title select normalized table with idx",1)
+results1 = benchmark_query_simple(QRY_TYPE_C_SINGLE_MOVIE,loop_amount,"Test of simple title select normalized table with idx",1)
 cursor2.execute(drop_idx1)
 pg_commit()
 
@@ -106,37 +106,37 @@ parm_list.append((random.choice(list_titles),))
 
 
 #Run Benchmark to compare the queries from both JSON and JSONB using a fixed value
-results1 = benchmark_query_parms_list(QRY_TYPE_A_SINGLE_MOVIE_RND10,5,"Test of random title select with JSONB Datatype, no GIN",1,parm_list)
+results1 = benchmark_query_parms_list_work_around(QRY_TYPE_A_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select with JSONB Datatype, no GIN",1,parm_list)
 
 print("creating gin index...")
 cursor2.execute(create_idx4)
 pg_commit()
 
-results1 = benchmark_query_parms_list(QRY_TYPE_A_SINGLE_MOVIE_RND10,5,"Test of random title select with  JSONB Datatype, W/GIN",1,parm_list)
+results1 = benchmark_query_parms_list_work_around(QRY_TYPE_A_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select with  JSONB Datatype, W/GIN",1,parm_list)
 cursor2.execute(drop_idx4)
 pg_commit()
 
 
-results2 = benchmark_query_parms_list(QRY_TYPE_B_SINGLE_MOVIE_RND10,5,"Test of random title select with  Generated Coluimn w/idx",1,parm_list)
-results2 = benchmark_query_parms_list(QRY_TYPE_B_EXP_SINGLE_MOVIE_RND10,5,"Test of random title select with  expression idx",1,parm_list)
+results2 = benchmark_query_parms_list(QRY_TYPE_B_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select with  Generated Coluimn w/idx",1,parm_list)
+results2 = benchmark_query_parms_list(QRY_TYPE_B_EXP_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select with  expression idx",1,parm_list)
 
-results1 = benchmark_query_parms_list(QRY_TYPE_C_SINGLE_MOVIE_RND10,5,"Test of random title select normalized table wo idx",1,parm_list)
+results1 = benchmark_query_parms_list(QRY_TYPE_C_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select normalized table wo idx",1,parm_list)
 
 print("creating title index...")
 cursor2.execute(create_idx1)
 pg_commit()
-results1 = benchmark_query_parms_list(QRY_TYPE_C_SINGLE_MOVIE_RND10,5,"Test of random title select normalized table with idx",1,parm_list)
+results1 = benchmark_query_parms_list(QRY_TYPE_C_SINGLE_MOVIE_RND10,loop_amount,"Test of random title select normalized table with idx",1,parm_list)
 cursor2.execute(drop_idx1)
 pg_commit()
 
 #Run Benchmark to compare the queries from both JSON and JSONB using a fixed value
-results1 = benchmark_query_simple(QRY_TYPE_A_TOP_10,5,"Test of top 10 movies list Single Json, no GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_TOP_10,loop_amount,"Test of top 10 movies list Single Json, no GIN",1)
 
 print("creating gin index...")
 cursor2.execute(create_idx4)
 pg_commit()
 
-results1 = benchmark_query_simple(QRY_TYPE_A_TOP_10,5,"TTest of top 10 movies list Single Json, W/GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_TOP_10,loop_amount,"TTest of top 10 movies list Single Json, W/GIN",1)
 cursor2.execute(drop_idx4)
 pg_commit()
 
@@ -144,33 +144,53 @@ cursor2.execute(create_idx2)
 cursor2.execute(create_idx3)
 
 pg_commit()
-results2 = benchmark_query_simple(QRY_TYPE_B_TOP_10,5,"Test of top 10 movies list w  Generated Coluimn w/idx",1)
-results2 = benchmark_query_simple(QRY_TYPE_B_EXP_TOP_10,5,"Test of top 10 movies list w expression idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_TOP_10,loop_amount,"Test of top 10 movies list w  Generated Coluimn w/idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_EXP_TOP_10,loop_amount,"Test of top 10 movies list w expression idx",1)
 cursor2.execute(drop_idx2)
 cursor2.execute(drop_idx3)
 
 pg_commit()
 
-results1 = benchmark_query_simple(QRY_TYPE_C_TOP_10,5,"Test of random title select normalized table w idx",1)
+results1 = benchmark_query_simple(QRY_TYPE_C_TOP_10,loop_amount,"Test of random title select normalized table w idx",1)
 
 
 #Run Benchmark to compare the queries from both JSON and JSONB using a fixed value
-results1 = benchmark_query_simple(QRY_TYPE_A_MOVIES_FOR_ACTOR,5,"Test of top 10 movies list Single Json, no GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_MOVIES_FOR_ACTOR,loop_amount,"Test of top 10 movies list Single Json, no GIN",1)
 
 print("creating gin index...")
 cursor2.execute(create_idx4)
 pg_commit()
 
-results1 = benchmark_query_simple(QRY_TYPE_A_MOVIES_FOR_ACTOR,5,"TTest of top 10 movies list Single Json, W/GIN",1)
+results1 = benchmark_query_simple(QRY_TYPE_A_MOVIES_FOR_ACTOR,loop_amount,"TTest of top 10 movies list Single Json, W/GIN",1)
 cursor2.execute(drop_idx4)
 pg_commit()
 
 
-results2 = benchmark_query_simple(QRY_TYPE_B_MOVIES_FOR_ACTOR,5,"Test of top 10 movies list w  Generated Coluimn w/idx",1)
-results2 = benchmark_query_simple(QRY_TYPE_B_MOVIES_FOR_ACTOR,5,"Test of top 10 movies list w expression idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_MOVIES_FOR_ACTOR,loop_amount,"Test of top 10 movies list w  Generated Coluimn w/idx",1)
+results2 = benchmark_query_simple(QRY_TYPE_B_MOVIES_FOR_ACTOR,loop_amount,"Test of top 10 movies list w expression idx",1)
 
 
-results1 = benchmark_query_simple(QRY_TYPE_C_MOVIES_FOR_ACTOR,5,"Test of random title select normalized table w idx",1)
+results1 = benchmark_query_simple(QRY_TYPE_C_MOVIES_FOR_ACTOR,loop_amount,"Test of random title select normalized table w idx",1)
+
+#Run Benchmark to compare the queries from both JSON and JSONB using a fixed value
+
+actor_list = ('Robert Downey Jr.', 'Marlon Brando', 'Tom Cruise', 'Ryan Reynolds', 'Samuel L. Jackson')
+
+results1 = benchmark_query_parms_list(QRY_TYPE_A_MOVIES_ACTOR_COUNT,loop_amount,"Test of actor count JSONB Datatype, no GIN",1,actor_count_list)
+
+print("creating gin index...")
+cursor2.execute(create_idx4)
+pg_commit()
+
+results1 = benchmark_query_parms_list(QRY_TYPE_A_MOVIES_ACTOR_COUNT,loop_amount,"Test of actor count  JSONB Datatype, W/GIN",1,actor_count_list)
+cursor2.execute(drop_idx4)
+pg_commit()
+
+
+results2 = benchmark_query_parms_list(QRY_TYPE_B_MOVIES_ACTOR_COUNT,loop_amount,"Test of actor count Generated Coluimn w/idx",1,actor_count_list)
+
+results1 = benchmark_query_parms_list(QRY_TYPE_C_MOVIES_ACTOR_COUNT,loop_amount,"Test of actor count normalized table wo idx",1,actor_count_list)
+
 
 
 
