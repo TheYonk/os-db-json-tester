@@ -1,6 +1,6 @@
 #!/bin/sh
 
-run_time=330
+run_time=1330
 
 python3 mysql_normalized_lookups.py "$run_time" > logs/mysql_lu1.log 2>&1 &
 python3 mysql_normalized_lookups.py "$run_time" > logs/mysql_lu2.log 2>&1 &

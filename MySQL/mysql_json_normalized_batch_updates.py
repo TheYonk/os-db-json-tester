@@ -71,7 +71,7 @@ while current_time < time_to_run :
    print("Batch Sleeping: " + str(sleep_time) + " seconds ")
    time.sleep(sleep_time)
    print("Batch Awoken from sleep")
-   
+   cnx.commit()    
    # print("Query: " + str(qry))
 print("Ending Querying Data After "+ str(current_time) + " seconds ...  Finished " + str(qry) + " queries")
    

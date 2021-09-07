@@ -15,7 +15,8 @@ config = {
   'password': 'Ch@nge_me_1st',
   'host': '127.0.0.1',
   'database': 'movie_json_test',
-  'raise_on_warnings': True
+  'raise_on_warnings': True,
+  'autocommit' : True
 }
 
 cnx = mysql.connector.connect(**config)

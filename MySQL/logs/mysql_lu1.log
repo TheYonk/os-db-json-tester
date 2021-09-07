@@ -1,7 +1,0 @@
-Run Time Set to: 330
-Loading Titles & ID's...
-Starting Querying Data for 330 second ...
-Ending Querying Data After 330.00152075098595 seconds ...  Finished 348522 queries
-ysql_normalized_lookups.py", line 158, in <module>
-    for (imdb_id,title, imdb_rating ) in cursor:
-ValueError: too many values to unpack (expected 3)
