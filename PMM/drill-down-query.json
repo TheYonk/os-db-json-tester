@@ -1,0 +1,918 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 0,
+  "id": 116,
+  "iteration": 1631297766142,
+  "links": [],
+  "panels": [
+    {
+      "datasource": "ClickHouse",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": null,
+            "displayMode": "gradient-gauge",
+            "filterable": false
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 2,
+              "value": ""
+            }
+          ],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AvgTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "super-light-green",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "light-red",
+                      "value": 1
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Query"
+            },
+            "properties": [
+              {
+                "id": "custom.width"
+              },
+              {
+                "id": "custom.align",
+                "value": null
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TotTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_type"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 3,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 11,
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "intervalFactor": 10,
+          "query": "SELECT\n    queryid,\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum) as TotTime, \n    sum(m_query_time_sum)/sum(num_queries) as AvgTime, \n    max(m_query_time_sum/num_queries) as MaxTime\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand fingerprint != 'COMMIT'\nand queryid = '$QueryId'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 1\n",
+          "rawQuery": "SELECT\n    queryid,\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum) as TotTime, \n    sum(m_query_time_sum)/sum(num_queries) as AvgTime, \n    max(m_query_time_sum/num_queries) as MaxTime\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1630675200) AND toDateTime(1630684440)\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand fingerprint != 'COMMIT'\nand queryid = 'b650425497cc8cc3b3fd7182969d21c235ab72e5befc49e1f29022de04a37758'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 1",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Data for the following Query:",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "AvgTime": true,
+              "Count": true,
+              "MaxTime": true,
+              "TotTime": true,
+              "queryid": true,
+              "service_name": true,
+              "service_type": true
+            },
+            "indexByName": {
+              "AvgTime": 5,
+              "Count": 3,
+              "MaxTime": 6,
+              "Query": 0,
+              "TotTime": 4,
+              "queryid": 7,
+              "service_name": 1,
+              "service_type": 2
+            },
+            "renameByName": {
+              "queryid": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 11,
+        "x": 0,
+        "y": 3
+      },
+      "id": 8,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "hide": false,
+          "intervalFactor": 1,
+          "query": "SELECT\n    $timeSeries as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand queryid = '$QueryId'\n\nGROUP BY t, service_type\nORDER BY t\n",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 300) * 300) * 1000 as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM pmm.metrics\n\nWHERE period_start >= toDateTime(1630602840)\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand queryid = 'b650425497cc8cc3b3fd7182969d21c235ab72e5befc49e1f29022de04a37758'\n\nGROUP BY t, service_type\nORDER BY t",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Database Response Time",
+      "type": "timeseries"
+    },
+    {
+      "cards": {
+        "cardPadding": -2,
+        "cardRound": null
+      },
+      "color": {
+        "cardColor": "#b4ff00",
+        "colorScale": "sqrt",
+        "colorScheme": "interpolateRdYlGn",
+        "exponent": 0.5,
+        "max": null,
+        "min": 0,
+        "mode": "spectrum"
+      },
+      "dataFormat": "timeseries",
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 13,
+        "x": 11,
+        "y": 3
+      },
+      "heatmap": {},
+      "hideZeroBuckets": false,
+      "highlightCards": true,
+      "id": 10,
+      "legend": {
+        "show": true
+      },
+      "pluginVersion": "7.5.6",
+      "reverseYBuckets": false,
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "hide": false,
+          "intervalFactor": 1,
+          "query": "SELECT\n    $timeSeries as t,\n    (m_query_time_sum / m_query_time_cnt) * 1000\n    \nFROM $table\nWHERE $timeFilter\n\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand queryid = '$QueryId'\n\norder by t",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 1) * 1) * 1000 as t,\n    (m_query_time_sum / m_query_time_cnt) * 1000\n    \nFROM pmm.metrics\nWHERE period_start BETWEEN toDateTime(1631208660) AND toDateTime(1631209980)\n\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand queryid = '1822573546649064817'\n\norder by t",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Database Response Time",
+      "tooltip": {
+        "show": true,
+        "showHistogram": false
+      },
+      "tooltipDecimals": null,
+      "type": "heatmap",
+      "xAxis": {
+        "show": true
+      },
+      "xBucketNumber": null,
+      "xBucketSize": "",
+      "yAxis": {
+        "decimals": 0,
+        "format": "ms",
+        "logBase": 1,
+        "max": null,
+        "min": "0",
+        "show": true,
+        "splitFactor": null
+      },
+      "yBucketBound": "auto",
+      "yBucketNumber": 10,
+      "yBucketSize": null
+    },
+    {
+      "datasource": "ClickHouse",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": null,
+            "displayMode": "gradient-gauge",
+            "filterable": false
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 2,
+              "value": ""
+            }
+          ],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AvgTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "super-light-green",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "light-red",
+                      "value": 1
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 3
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TotTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "period_start"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "dark-purple",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AvgTime"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "lcd-gauge"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "percentage",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 50
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 16,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "id": 6,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "period_start"
+          }
+        ]
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "intervalFactor": 10,
+          "query": "SELECT\n    period_start,\n    num_queries as Count, \n    m_query_time_sum as TotTime, \n    m_query_time_sum/num_queries as AvgTime\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand fingerprint != 'COMMIT'\nand queryid = '$QueryId'\n\nORDER BY period_start desc\n",
+          "rawQuery": "SELECT\n    period_start,\n    num_queries as Count, \n    m_query_time_sum as TotTime, \n    m_query_time_sum/num_queries as AvgTime\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1630675200) AND toDateTime(1630684440)\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand fingerprint != 'COMMIT'\nand queryid = 'b650425497cc8cc3b3fd7182969d21c235ab72e5befc49e1f29022de04a37758'\n\nORDER BY period_start desc",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Minute By Minute Query Times",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Count": true,
+              "TotTime": true,
+              "queryid": false
+            },
+            "indexByName": {
+              "AvgTime": 1,
+              "Count": 2,
+              "TotTime": 3,
+              "period_start": 0
+            },
+            "renameByName": {
+              "queryid": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": null,
+            "filterable": false
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 1
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 12,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "min"
+          }
+        ]
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "hide": false,
+          "intervalFactor": 1,
+          "query": " with histogram(5)(tm) as hist\n select \n        concat(toString(round(arrayJoin(hist).1,2)), ' ms - ', toString(round(arrayJoin(hist).2,2)) , ' ms') as BucketRange,\n        arrayJoin(hist).3 as weight, \n        (round(arrayJoin(hist).1,2)) as min\n from (select round(m_query_time_sum/m_query_time_cnt*1000) as tm\n  from $table where queryid = '$QueryId' ) order by min asc",
+          "rawQuery": "with histogram(5)(tm) as hist\n select \n        concat(toString(round(arrayJoin(hist).1,2)), ' ms - ', toString(round(arrayJoin(hist).2,2)) , ' ms') as BucketRange,\n        arrayJoin(hist).3 as weight, \n        (round(arrayJoin(hist).1,2)) as min\n from (select round(m_query_time_sum/m_query_time_cnt*1000) as tm\n  from pmm.metrics where queryid = '-8816610475019364415' ) order by min asc",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Database Response Time",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "min": true
+            },
+            "indexByName": {},
+            "renameByName": {}
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 27,
+  "style": "dark",
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "allValue": null,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": null,
+        "definition": "label_values(up{node_name=~\"$node_name\"}, service_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "service_name",
+        "options": [],
+        "query": {
+          "query": "label_values(up{node_name=~\"$node_name\"}, service_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": null,
+        "definition": "label_values(up{service_name=~\"$service_name\"},service_type)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Database",
+        "multi": true,
+        "name": "service_type",
+        "options": [
+          {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "mysql",
+            "value": "mysql"
+          },
+          {
+            "selected": false,
+            "text": "postgresql",
+            "value": "postgresql"
+          }
+        ],
+        "query": {
+          "query": "label_values(up{service_name=~\"$service_name\"},service_type)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allValue": null,
+        "current": {
+          "selected": false,
+          "text": "localhost.localdomain",
+          "value": "localhost.localdomain"
+        },
+        "datasource": null,
+        "definition": "label_values(up, node_name)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Node",
+        "multi": true,
+        "name": "node_name",
+        "options": [
+          {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          {
+            "selected": false,
+            "text": "pmm-server",
+            "value": "pmm-server"
+          },
+          {
+            "selected": true,
+            "text": "localhost.localdomain",
+            "value": "localhost.localdomain"
+          }
+        ],
+        "query": {
+          "query": "label_values(up, node_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 0,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "description": null,
+        "error": null,
+        "hide": 2,
+        "label": "Query Fingerprint",
+        "name": "QueryId",
+        "query": "",
+        "skipUrlSync": false,
+        "type": "constant"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Solo Query Deep Dive",
+  "uid": "V1kavNI7z",
+  "version": 17
+}

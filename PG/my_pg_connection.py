@@ -6,7 +6,13 @@ from psycopg2.extensions import AsIs
 MYDSN = "dbname=movie_json_test user=movie_json_user password=Change_me_1st! host=127.0.0.1";
 cnx = psycopg2.connect(MYDSN)
 cnx2 = psycopg2.connect(MYDSN)
-  
+
+def pg_return_dsn():
+    return MYDSN
+
+def pg_return_new_connection():
+    return psycopg2.connect(MYDSN)    
+          
 def pg_get_read_only_cursor():
   cnx.set_session(readonly=True, autocommit=True)
   return cnx.cursor()

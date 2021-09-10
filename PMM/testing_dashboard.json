@@ -16,9 +16,340 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 113,
-  "iteration": 1631011453163,
+  "iteration": 1631297555127,
   "links": [],
   "panels": [
+    {
+      "aliasColors": {},
+      "bars": false,
+      "cacheTimeout": null,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 0,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 46,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "MySQL Services Overview",
+          "url": "/graph/d/mysql-instance-overview/mysql-instances-overview?$__url_time_range"
+        },
+        {
+          "targetBlank": true,
+          "title": "MongoDB Services Overview",
+          "url": "/graph/d/mongodb-instance-overview/mongodb-instances-overview?$__url_time_range"
+        },
+        {
+          "targetBlank": true,
+          "title": "PostgreSQL Services Overview",
+          "url": "/graph/d/postgresql-instance-overview/postgresql-instances-overview?$__url_time_range"
+        }
+      ],
+      "maxDataPoints": null,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by (service_name) (max_over_time(mysql_global_status_threads_connected{service_name=~\"$service_name\",environment=~\"$environment\"}[$interval]) or \nmax_over_time(mongodb_connections{service_name=~\"$service_name\",state=\"current\",environment=~\"$environment\"}[$interval]) or\nsum by (service_name) (max_over_time(pg_stat_database_numbackends{service_name=~\"$service_name\",environment=~\"$environment\"}[$interval])))",
+          "interval": "$interval",
+          "legendFormat": "",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "DB Conns",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:107",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:108",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 8,
+        "y": 0
+      },
+      "hiddenSeries": false,
+      "id": 47,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "title": "Show Details",
+          "url": "http://192.168.1.105/graph/d/pmm-qan/pmm-query-analytics?${__all_variables}"
+        }
+      ],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    $timeSeries as t,\n    service_type,\n    sum(num_queries)/60 as QPS\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\n\nGROUP BY t, service_type\n\nORDER BY t\n",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 1) * 1) * 1000 as t,\n    service_type,\n    sum(num_queries)/60 as QPS\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1630673820) AND toDateTime(1630678500)\nand service_name in ( 'localhost.localdomain-postgresql' )\nand service_type in ( 'postgresql' )\n\nGROUP BY t, service_type\n\nORDER BY t",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "thresholds": [
+        {
+          "$$hashKey": "object:1731",
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "yaxis": "left"
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Database Queries Per Second",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3064",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3065",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "graph": false,
+              "legend": false,
+              "tooltip": false
+            },
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 8,
+        "x": 16,
+        "y": 0
+      },
+      "id": 48,
+      "options": {
+        "graph": {},
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltipOptions": {
+          "mode": "single"
+        }
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "hide": false,
+          "intervalFactor": 1,
+          "query": "SELECT\n    $timeSeries as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\n\nGROUP BY t, service_type\nORDER BY t\n",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 2) * 2) * 1000 as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1630673820) AND toDateTime(1630678500)\nand service_name in ( 'localhost.localdomain-postgresql','localhost.localdomain-mysql' )\nand service_type in ( 'postgresql','mysql' )\n\nGROUP BY t, service_type\nORDER BY t",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Database Response Time",
+      "type": "timeseries"
+    },
     {
       "collapsed": false,
       "datasource": null,
@@ -26,12 +357,314 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 6
       },
       "id": 24,
       "panels": [],
       "title": "Queries",
       "type": "row"
+    },
+    {
+      "datasource": "ClickHouse",
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": null,
+            "displayMode": "gradient-gauge",
+            "filterable": false
+          },
+          "mappings": [
+            {
+              "from": "",
+              "id": 1,
+              "text": "",
+              "to": "",
+              "type": 2,
+              "value": ""
+            }
+          ],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "AvgTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "super-light-green",
+                      "value": 0.25
+                    },
+                    {
+                      "color": "#EAB839",
+                      "value": 0.5
+                    },
+                    {
+                      "color": "light-red",
+                      "value": 1
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 3
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Query"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 1220
+              },
+              {
+                "id": "custom.align",
+                "value": "left"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "targetBlank": true,
+                    "title": "Query Drill In",
+                    "url": "http://192.168.1.105/graph/d/V1kavNI7z/solo-query-deep-dive?${__all_variables}﻿﻿﻿&﻿var-QueryId=﻿${__data.fields.queryid}&${__url_time_range}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "TotTime"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_type"
+            },
+            "properties": [
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "service_name"
+            },
+            "properties": [
+              {
+                "id": "displayName",
+                "value": "Service"
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "palette-classic"
+                }
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-background"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Count"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "queryid"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "string"
+              },
+              {
+                "id": "custom.displayMode",
+                "value": "color-text"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "MaxTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 0
+              },
+              {
+                "id": "unit",
+                "value": "ms"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 9,
+        "w": 24,
+        "x": 0,
+        "y": 7
+      },
+      "id": 17,
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "AvgTime"
+          }
+        ]
+      },
+      "pluginVersion": "7.5.6",
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "intervalFactor": 10,
+          "query": "SELECT\n    cast(queryid, 'String') as queryid,\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum)*1000 as TotTime, \n    sum(m_query_time_sum)/sum(num_queries)*1000 as AvgTime, \n    max(m_query_time_sum/num_queries)*1000 as MaxTime\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand fingerprint != 'COMMIT'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 10\n",
+          "rawQuery": "SELECT\n    cast(queryid, 'String') as queryid,\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum)*1000 as TotTime, \n    sum(m_query_time_sum)/sum(num_queries)*1000 as AvgTime, \n    max(m_query_time_sum/num_queries)*1000 as MaxTime\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1631295060) AND toDateTime(1631296440)\nand service_name in ( 'localhost.localdomain-postgresql','localhost.localdomain-mysql' )\nand service_type in ( 'postgresql','mysql' )\nand fingerprint != 'COMMIT'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 10",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "Top 10 Queries",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "queryid": false
+            },
+            "indexByName": {
+              "AvgTime": 5,
+              "Count": 3,
+              "MaxTime": 6,
+              "Query": 0,
+              "TotTime": 4,
+              "queryid": 7,
+              "service_name": 1,
+              "service_type": 2
+            },
+            "renameByName": {
+              "queryid": ""
+            }
+          }
+        }
+      ],
+      "type": "table"
     },
     {
       "datasource": "ClickHouse",
@@ -61,7 +694,7 @@
         "h": 9,
         "w": 5,
         "x": 0,
-        "y": 1
+        "y": 16
       },
       "id": 10,
       "options": {
@@ -136,7 +769,7 @@
         "h": 9,
         "w": 4,
         "x": 5,
-        "y": 1
+        "y": 16
       },
       "id": 8,
       "options": {
@@ -213,7 +846,7 @@
         "h": 9,
         "w": 4,
         "x": 9,
-        "y": 1
+        "y": 16
       },
       "id": 11,
       "options": {
@@ -271,7 +904,7 @@
         "h": 9,
         "w": 11,
         "x": 13,
-        "y": 1
+        "y": 16
       },
       "hiddenSeries": false,
       "id": 2,
@@ -380,227 +1013,6 @@
     },
     {
       "datasource": "ClickHouse",
-      "description": "",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "custom": {
-            "align": null,
-            "displayMode": "gradient-gauge",
-            "filterable": false
-          },
-          "mappings": [
-            {
-              "from": "",
-              "id": 1,
-              "text": "",
-              "to": "",
-              "type": 2,
-              "value": ""
-            }
-          ],
-          "thresholds": {
-            "mode": "percentage",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "#EAB839",
-                "value": 50
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          }
-        },
-        "overrides": [
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "AvgTime"
-            },
-            "properties": [
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              },
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "absolute",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "#EAB839",
-                      "value": 0.5
-                    },
-                    {
-                      "color": "red",
-                      "value": 1
-                    }
-                  ]
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "Query"
-            },
-            "properties": [
-              {
-                "id": "custom.width",
-                "value": 1000
-              },
-              {
-                "id": "custom.align",
-                "value": "left"
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "palette-classic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "TotTime"
-            },
-            "properties": [
-              {
-                "id": "thresholds",
-                "value": {
-                  "mode": "percentage",
-                  "steps": [
-                    {
-                      "color": "green",
-                      "value": null
-                    },
-                    {
-                      "color": "#EAB839",
-                      "value": 60
-                    },
-                    {
-                      "color": "red",
-                      "value": 80
-                    }
-                  ]
-                }
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "thresholds"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "service_type"
-            },
-            "properties": [
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "palette-classic"
-                }
-              }
-            ]
-          },
-          {
-            "matcher": {
-              "id": "byName",
-              "options": "service_name"
-            },
-            "properties": [
-              {
-                "id": "displayName",
-                "value": "Service"
-              },
-              {
-                "id": "color",
-                "value": {
-                  "mode": "palette-classic"
-                }
-              },
-              {
-                "id": "custom.displayMode",
-                "value": "color-background"
-              }
-            ]
-          }
-        ]
-      },
-      "gridPos": {
-        "h": 9,
-        "w": 24,
-        "x": 0,
-        "y": 10
-      },
-      "id": 17,
-      "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Count"
-          }
-        ]
-      },
-      "pluginVersion": "7.5.6",
-      "targets": [
-        {
-          "database": "pmm",
-          "dateColDataType": "",
-          "dateLoading": false,
-          "dateTimeColDataType": "period_start",
-          "dateTimeType": "DATETIME",
-          "datetimeLoading": false,
-          "extrapolate": true,
-          "format": "table",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "intervalFactor": 10,
-          "query": "SELECT\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum) as TotTime, \n    sum(m_query_time_sum)/sum(num_queries) as AvgTime, \n    max(m_query_time_max) as MaxTime\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand fingerprint != 'COMMIT'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 10\n",
-          "rawQuery": "SELECT\n    fingerprint as Query, \n    service_name,\n    service_type,\n    sum(num_queries) as Count, \n    sum(m_query_time_sum) as TotTime, \n    sum(m_query_time_sum)/sum(num_queries) as AvgTime, \n    max(m_query_time_max) as MaxTime\nFROM pmm.metrics\n\nWHERE period_start >= toDateTime(1630432140)\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'postgresql','mysql' )\nand fingerprint != 'COMMIT'\nGROUP BY queryid, fingerprint, service_name, service_type\n\nORDER BY TotTime desc\nlimit 10",
-          "refId": "A",
-          "round": "1m",
-          "skip_comments": true,
-          "table": "metrics",
-          "tableLoading": false
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "Top 10 Queries",
-      "type": "table"
-    },
-    {
-      "datasource": "ClickHouse",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -628,7 +1040,7 @@
         "h": 8,
         "w": 4,
         "x": 0,
-        "y": 19
+        "y": 25
       },
       "id": 33,
       "options": {
@@ -719,9 +1131,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 10,
+        "w": 9,
         "x": 4,
-        "y": 19
+        "y": 25
       },
       "id": 35,
       "options": {
@@ -785,9 +1197,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 10,
-        "x": 14,
-        "y": 19
+        "w": 11,
+        "x": 13,
+        "y": 25
       },
       "heatmap": {},
       "hideZeroBuckets": false,
@@ -835,7 +1247,7 @@
       "xBucketNumber": null,
       "xBucketSize": "",
       "yAxis": {
-        "decimals": 0,
+        "decimals": 3,
         "format": "ms",
         "logBase": 10,
         "max": null,
@@ -848,13 +1260,129 @@
       "yBucketSize": null
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "cacheTimeout": null,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": null,
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 7,
+        "w": 13,
+        "x": 0,
+        "y": 33
+      },
+      "hiddenSeries": false,
+      "id": 39,
+      "interval": "$interval",
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "targetBlank": true,
+          "title": "MySQL Services Overview",
+          "url": "/graph/d/mysql-instance-overview/mysql-instances-overview?$__url_time_range"
+        },
+        {
+          "targetBlank": true,
+          "title": "MongoDB Services Overview",
+          "url": "/graph/d/mongodb-instance-overview/mongodb-instances-overview?$__url_time_range"
+        },
+        {
+          "targetBlank": true,
+          "title": "PostgreSQL Services Overview",
+          "url": "/graph/d/postgresql-instance-overview/postgresql-instances-overview?$__url_time_range"
+        }
+      ],
+      "maxDataPoints": null,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "exemplar": true,
+          "expr": "sum by () (max_over_time(mysql_global_status_threads_connected{node_name=~\"$node_name\",environment=~\"$environment\"}[$interval]) or \nmax_over_time(mongodb_connections{node_name=~\"$node_name\",state=\"current\",environment=~\"$environment\"}[$interval]) or\nsum by (node_name) (max_over_time(pg_stat_database_numbackends{node_name=~\"$node_name\",environment=~\"$environment\"}[$interval])))",
+          "interval": "$interval",
+          "legendFormat": "DB Connections $node_name",
+          "refId": "C"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "DB Conns",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:107",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:108",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
+    },
+    {
       "collapsed": false,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 27
+        "y": 40
       },
       "id": 26,
       "panels": [],
@@ -895,7 +1423,7 @@
         "h": 7,
         "w": 3,
         "x": 0,
-        "y": 28
+        "y": 41
       },
       "id": 15,
       "options": {
@@ -960,7 +1488,7 @@
         "h": 7,
         "w": 3,
         "x": 3,
-        "y": 28
+        "y": 41
       },
       "id": 4,
       "options": {
@@ -1025,7 +1553,7 @@
         "h": 7,
         "w": 3,
         "x": 6,
-        "y": 28
+        "y": 41
       },
       "id": 16,
       "options": {
@@ -1072,10 +1600,10 @@
       "fill": 1,
       "fillGradient": 0,
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 15,
         "x": 9,
-        "y": 28
+        "y": 41
       },
       "hiddenSeries": false,
       "id": 12,
@@ -1133,6 +1661,7 @@
       },
       "yaxes": [
         {
+          "$$hashKey": "object:222",
           "format": "percentunit",
           "label": null,
           "logBase": 1,
@@ -1141,6 +1670,7 @@
           "show": true
         },
         {
+          "$$hashKey": "object:223",
           "format": "short",
           "label": null,
           "logBase": 1,
@@ -1189,7 +1719,7 @@
         "h": 7,
         "w": 3,
         "x": 0,
-        "y": 35
+        "y": 48
       },
       "id": 18,
       "options": {
@@ -1255,7 +1785,7 @@
         "h": 7,
         "w": 3,
         "x": 3,
-        "y": 35
+        "y": 48
       },
       "id": 19,
       "options": {
@@ -1321,7 +1851,7 @@
         "h": 7,
         "w": 3,
         "x": 6,
-        "y": 35
+        "y": 48
       },
       "id": 20,
       "options": {
@@ -1353,90 +1883,6 @@
       "type": "gauge"
     },
     {
-      "cacheTimeout": null,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "id": 0,
-              "op": "=",
-              "text": "N/A",
-              "type": 1,
-              "value": "null"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#299c46",
-                "value": null
-              },
-              {
-                "color": "rgba(237, 129, 40, 0.89)",
-                "value": 70
-              },
-              {
-                "color": "#d44a3a",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 6,
-        "w": 3,
-        "x": 9,
-        "y": 36
-      },
-      "id": 14,
-      "interval": null,
-      "links": [
-        {
-          "targetBlank": true,
-          "title": "Nodes Overview",
-          "url": "/graph/d/node-instance-overview/nodes-overview?$__url_time_range&$__all_variables"
-        }
-      ],
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "max"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "text": {},
-        "textMode": "auto"
-      },
-      "pluginVersion": "7.5.6",
-      "targets": [
-        {
-          "exemplar": true,
-          "expr": "mysql_global_status_connections",
-          "interval": "$interval",
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "timeFrom": null,
-      "timeShift": null,
-      "title": "CPU Busy",
-      "type": "stat"
-    },
-    {
       "cards": {
         "cardPadding": null,
         "cardRound": null
@@ -1449,16 +1895,16 @@
         "mode": "spectrum"
       },
       "dataFormat": "timeseries",
-      "datasource": "ClickHouse",
+      "datasource": null,
       "fieldConfig": {
         "defaults": {},
         "overrides": []
       },
       "gridPos": {
-        "h": 6,
-        "w": 12,
-        "x": 12,
-        "y": 36
+        "h": 7,
+        "w": 15,
+        "x": 9,
+        "y": 48
       },
       "heatmap": {},
       "hideZeroBuckets": false,
@@ -1471,28 +1917,16 @@
       "reverseYBuckets": false,
       "targets": [
         {
-          "database": "pmm",
-          "dateColDataType": "",
-          "dateLoading": false,
-          "dateTimeColDataType": "period_start",
-          "dateTimeType": "DATETIME",
-          "datetimeLoading": false,
-          "extrapolate": true,
-          "format": "table",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "intervalFactor": 10,
-          "query": "SELECT\n    toDate(period_start) as Day,\n    sum(if((m_query_time_sum * 1000) < 1, 1, 0)) AS `0-1ms`,\n    sum(if((m_query_time_sum * 1000) >= 1, if((m_query_time_sum * 1000) < 10, 1, 0), 0)) AS `1-10ms`,\n    sum(if((m_query_time_sum * 1000) >= 10, if((m_query_time_sum * 1000) < 100, 1, 0), 0)) AS `10-100ms`,\n    sum(if((m_query_time_sum * 1000) >= 100, if((m_query_time_sum * 1000) < 1000, 1, 0), 0)) AS `100-1000ms`,\n    sum(if((m_query_time_sum * 1000) > 1000, 1, 0), 0) AS `>1000ms`\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand database in ( $db_name )\n\nGROUP BY period_length, Day, Hour , ts\n\nORDER BY Day desc , Hour desc\n",
-          "rawQuery": "SELECT\n    toDate(period_start) as Day,\n    sum(if((m_query_time_sum * 1000) < 1, 1, 0)) AS `0-1ms`,\n    sum(if((m_query_time_sum * 1000) >= 1, if((m_query_time_sum * 1000) < 10, 1, 0), 0)) AS `1-10ms`,\n    sum(if((m_query_time_sum * 1000) >= 10, if((m_query_time_sum * 1000) < 100, 1, 0), 0)) AS `10-100ms`,\n    sum(if((m_query_time_sum * 1000) >= 100, if((m_query_time_sum * 1000) < 1000, 1, 0), 0)) AS `100-1000ms`,\n    sum(if((m_query_time_sum * 1000) > 1000, 1, 0), 0) AS `>1000ms`\nFROM pmm.metrics\n\nWHERE period_start BETWEEN toDateTime(1630357260) AND toDateTime(1630358580)\nand service_name in ( 'pmm-server-postgresql' )\nand database in ( $db_name )\n\nGROUP BY period_length, Day, Hour , ts\n\nORDER BY Day desc , Hour desc",
-          "refId": "A",
-          "round": "1m",
-          "skip_comments": true,
-          "table": "metrics",
-          "tableLoading": false
+          "exemplar": true,
+          "expr": "avg without (mode,cpu) ( rate((node_cpu_seconds_total{node_name=~\"$node_name\", mode=\"iowait\"}[1m]))) ",
+          "interval": "",
+          "legendFormat": "",
+          "refId": "A"
         }
       ],
       "timeFrom": null,
       "timeShift": null,
-      "title": "Database Queries Per Second",
+      "title": "IO Wait ",
       "tooltip": {
         "show": true,
         "showHistogram": false
@@ -1504,8 +1938,8 @@
       "xBucketNumber": null,
       "xBucketSize": null,
       "yAxis": {
-        "decimals": null,
-        "format": "short",
+        "decimals": 2,
+        "format": "percentunit",
         "logBase": 1,
         "max": null,
         "min": null,
@@ -1517,206 +1951,232 @@
       "yBucketSize": null
     },
     {
-      "collapsed": false,
+      "collapsed": true,
       "datasource": null,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 55
       },
-      "id": 28,
-      "panels": [],
-      "title": "Disk",
+      "id": 45,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "decimals": 2,
+          "fieldConfig": {
+            "defaults": {
+              "unit": "percent"
+            },
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 9
+          },
+          "hiddenSeries": false,
+          "id": 43,
+          "legend": {
+            "alignAsTable": true,
+            "avg": true,
+            "current": false,
+            "max": true,
+            "min": true,
+            "show": true,
+            "sort": "avg",
+            "sortDesc": true,
+            "total": false,
+            "values": true
+          },
+          "lines": false,
+          "linewidth": 1,
+          "links": [],
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "paceLength": 10,
+          "percentage": false,
+          "pluginVersion": "7.5.6",
+          "pointradius": 5,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": true,
+          "steppedLine": false,
+          "targets": [
+            {
+              "expr": "avg by (node_name) ((max_over_time(node_memory_MemFree_bytes{node_name=~\"$node_name\"}[$interval]) or max_over_time(node_memory_MemFree_bytes{node_name=~\"$node_name\"}[5m])) * 100 /\n(max_over_time(node_memory_MemTotal_bytes{node_name=~\"$node_name\"}[$interval]) or max_over_time(node_memory_MemTotal_bytes{node_name=~\"$node_name\"}[$interval])) or \n(100 - azure_memory_percent_average{node_name=~\"$node_name\"}))",
+              "format": "time_series",
+              "hide": false,
+              "interval": "$interval",
+              "intervalFactor": 1,
+              "legendFormat": "Free",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Free Memory Percent",
+          "tooltip": {
+            "shared": true,
+            "sort": 5,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:468",
+              "decimals": 0,
+              "format": "percent",
+              "label": "",
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:469",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": false
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": false,
+          "cacheTimeout": null,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 9
+          },
+          "hiddenSeries": false,
+          "id": 41,
+          "interval": null,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": true,
+          "linewidth": 1,
+          "links": [
+            {
+              "targetBlank": true,
+              "title": "Memory Overview",
+              "url": "/graph/d/node-memory/memory-details?$__url_time_range"
+            }
+          ],
+          "maxDataPoints": 100,
+          "nullPointMode": "null",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "7.5.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "avg by () (\n(node_memory_MemAvailable_bytes{node_name=~\"$node_name\"} or (node_memory_MemFree_bytes{node_name=~\"$node_name\"} + node_memory_Buffers_bytes{node_name=~\"$node_name\"} + node_memory_Cached_bytes{node_name=~\"$node_name\"})) * 100/ node_memory_MemTotal_bytes{node_name=~\"$node_name\"} or\n(rdsosmetrics_memory_free{node_name=~\"$node_name\"} + rdsosmetrics_memory_buffers{node_name=~\"$node_name\"} + rdsosmetrics_memory_cached{node_name=~\"$node_name\"}) * 100 / rdsosmetrics_memory_total{node_name=~\"$node_name\"} or (100 - azure_memory_percent_average{node_name=~\"$node_name\"})\n)",
+              "interval": "$interval",
+              "legendFormat": "Memory Avail $node_name ",
+              "refId": "B"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Mem Avail",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:670",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:671",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        }
+      ],
+      "title": "Memory",
       "type": "row"
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 43
-      },
-      "hiddenSeries": false,
-      "id": 7,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": false,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.5.6",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "exemplar": true,
-          "expr": "rate(node_disk_write_time_seconds_total[1m]) /rate(node_disk_writes_completed_total[1m])*100",
-          "interval": "",
-          "legendFormat": "{{ device }} Write Latency",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Disk Write Latency",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
-    },
-    {
-      "aliasColors": {},
-      "bars": true,
-      "dashLength": 10,
-      "dashes": false,
-      "datasource": null,
-      "fieldConfig": {
-        "defaults": {},
-        "overrides": []
-      },
-      "fill": 1,
-      "fillGradient": 0,
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 43
-      },
-      "hiddenSeries": false,
-      "id": 6,
-      "legend": {
-        "avg": false,
-        "current": false,
-        "max": false,
-        "min": false,
-        "show": true,
-        "total": false,
-        "values": false
-      },
-      "lines": false,
-      "linewidth": 1,
-      "nullPointMode": "null as zero",
-      "options": {
-        "alertThreshold": true
-      },
-      "percentage": false,
-      "pluginVersion": "7.5.6",
-      "pointradius": 2,
-      "points": false,
-      "renderer": "flot",
-      "seriesOverrides": [],
-      "spaceLength": 10,
-      "stack": false,
-      "steppedLine": false,
-      "targets": [
-        {
-          "exemplar": true,
-          "expr": "rate(node_disk_read_time_seconds_total[5s]) / rate(node_disk_reads_completed_total[5s])*100",
-          "interval": "",
-          "legendFormat": "{{ device }} Read Latency",
-          "refId": "A"
-        }
-      ],
-      "thresholds": [],
-      "timeFrom": null,
-      "timeRegions": [],
-      "timeShift": null,
-      "title": "Disk Read Latency",
-      "tooltip": {
-        "shared": true,
-        "sort": 0,
-        "value_type": "individual"
-      },
-      "type": "graph",
-      "xaxis": {
-        "buckets": null,
-        "mode": "time",
-        "name": null,
-        "show": true,
-        "values": []
-      },
-      "yaxes": [
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        },
-        {
-          "format": "short",
-          "label": null,
-          "logBase": 1,
-          "max": null,
-          "min": null,
-          "show": true
-        }
-      ],
-      "yaxis": {
-        "align": false,
-        "alignLevel": null
-      }
     },
     {
       "collapsed": true,
@@ -1725,7 +2185,212 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 51
+        "y": 56
+      },
+      "id": 28,
+      "panels": [
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 0,
+            "y": 46
+          },
+          "hiddenSeries": false,
+          "id": 7,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "nullPointMode": "null as zero",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "7.5.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "rate(node_disk_write_time_seconds_total[1m]) /rate(node_disk_writes_completed_total[1m])*100",
+              "interval": "",
+              "legendFormat": "{{ device }} Write Latency",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Disk Write Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "$$hashKey": "object:281",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "$$hashKey": "object:282",
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        },
+        {
+          "aliasColors": {},
+          "bars": true,
+          "dashLength": 10,
+          "dashes": false,
+          "datasource": null,
+          "fieldConfig": {
+            "defaults": {},
+            "overrides": []
+          },
+          "fill": 1,
+          "fillGradient": 0,
+          "gridPos": {
+            "h": 8,
+            "w": 12,
+            "x": 12,
+            "y": 46
+          },
+          "hiddenSeries": false,
+          "id": 6,
+          "legend": {
+            "avg": false,
+            "current": false,
+            "max": false,
+            "min": false,
+            "show": true,
+            "total": false,
+            "values": false
+          },
+          "lines": false,
+          "linewidth": 1,
+          "nullPointMode": "null as zero",
+          "options": {
+            "alertThreshold": true
+          },
+          "percentage": false,
+          "pluginVersion": "7.5.6",
+          "pointradius": 2,
+          "points": false,
+          "renderer": "flot",
+          "seriesOverrides": [],
+          "spaceLength": 10,
+          "stack": false,
+          "steppedLine": false,
+          "targets": [
+            {
+              "exemplar": true,
+              "expr": "rate(node_disk_read_time_seconds_total[5s]) / rate(node_disk_reads_completed_total[5s])*100",
+              "interval": "",
+              "legendFormat": "{{ device }} Read Latency",
+              "refId": "A"
+            }
+          ],
+          "thresholds": [],
+          "timeFrom": null,
+          "timeRegions": [],
+          "timeShift": null,
+          "title": "Disk Read Latency",
+          "tooltip": {
+            "shared": true,
+            "sort": 0,
+            "value_type": "individual"
+          },
+          "type": "graph",
+          "xaxis": {
+            "buckets": null,
+            "mode": "time",
+            "name": null,
+            "show": true,
+            "values": []
+          },
+          "yaxes": [
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            },
+            {
+              "format": "short",
+              "label": null,
+              "logBase": 1,
+              "max": null,
+              "min": null,
+              "show": true
+            }
+          ],
+          "yaxis": {
+            "align": false,
+            "alignLevel": null
+          }
+        }
+      ],
+      "title": "Disk",
+      "type": "row"
+    },
+    {
+      "collapsed": true,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 57
       },
       "id": 30,
       "panels": [
@@ -1739,7 +2404,7 @@
             "h": 11,
             "w": 24,
             "x": 0,
-            "y": 46
+            "y": 11
           },
           "id": 32,
           "pluginVersion": "7.5.6",
@@ -1749,7 +2414,7 @@
           "type": "pmm-qan-app-panel"
         }
       ],
-      "title": "PMM",
+      "title": "Query Analytics",
       "type": "row"
     }
   ],
@@ -1879,16 +2544,104 @@
         "tagsQuery": "",
         "type": "query",
         "useTags": false
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": null,
+        "definition": "label_values(up, environment)",
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": true,
+        "label": "Environment",
+        "multi": true,
+        "name": "environment",
+        "options": [],
+        "query": {
+          "query": "label_values(up, environment)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 5,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "auto": false,
+        "auto_count": 30,
+        "auto_min": "10s",
+        "current": {
+          "selected": false,
+          "text": "1m",
+          "value": "1m"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "label": "interval",
+        "name": "interval",
+        "options": [
+          {
+            "selected": false,
+            "text": "1s",
+            "value": "1s"
+          },
+          {
+            "selected": false,
+            "text": "5s",
+            "value": "5s"
+          },
+          {
+            "selected": true,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": false,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          },
+          {
+            "selected": false,
+            "text": "1d",
+            "value": "1d"
+          }
+        ],
+        "query": "1s,5s,1m,5m,1h,6h,1d",
+        "queryValue": "",
+        "refresh": 2,
+        "skipUrlSync": false,
+        "type": "interval"
       }
     ]
   },
   "time": {
-    "from": "now-15m",
-    "to": "now"
+    "from": "2021-09-10T17:31:56.150Z",
+    "to": "2021-09-10T17:54:13.078Z"
   },
   "timepicker": {},
   "timezone": "",
   "title": "PMM Testing Dashboard",
   "uid": "ki3tJT47z",
-  "version": 26
+  "version": 43
 }
