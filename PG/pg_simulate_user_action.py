@@ -284,10 +284,13 @@ def single_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,list
        connect.commit()    
        
 cnt = 0 
+threadcount = 0
+threadlist = []
 
-while cnt <  args.user_count:       
-    x = threading.Thread(target=single_user_actions_v2, args=(MYDSN,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids))
-    x.start()
+while cnt <  args.user_count:   
+    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(MYDSN,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
+    threadcount = threadcount + 1    
+    threadlist[-1].start()
     cnt = cnt + 1
     time.sleep(args.sleep_timer)
 

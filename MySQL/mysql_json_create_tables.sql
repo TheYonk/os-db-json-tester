@@ -102,7 +102,9 @@ create table movies_normalized_user_comments(
   comment_id int auto_increment primary key, 
   ai_myid int,
   rating int,
-  comment text
+  comment text,
+  comment_add_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  comment_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) engine = innodb;	
 
 
