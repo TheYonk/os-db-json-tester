@@ -2,7 +2,7 @@ drop database if exists movie_json_test;
 create database movie_json_test;
 
 create user 'movie_json_user'@'localhost' identified by 'Ch@nge_me_1st';
-GRANT create,alter,drop,select,insert,update,delete on  movie_json_test.* to 'movie_json_user'@'localhost';  
+GRANT create,alter,drop,select,insert,update,delete,index on  movie_json_test.* to 'movie_json_user'@'localhost';  
 use movie_json_test;
 
 drop table if exists movies_json;
@@ -103,8 +103,9 @@ create table movies_normalized_user_comments(
   ai_myid int,
   rating int,
   comment text,
+  imdb_id varchar(20),
   comment_add_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  comment_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+  comment_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP
 ) engine = innodb;	
 
 

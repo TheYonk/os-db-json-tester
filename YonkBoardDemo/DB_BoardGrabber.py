@@ -2,6 +2,8 @@ import evdev
 from evdev import InputDevice, categorize, ecodes
 import asyncio
 import pg_yonk_library
+import mysql_yonk_library
+
 import multiprocessing
 from multiprocessing import Manager
 import signal 
@@ -56,20 +58,38 @@ signal.signal(signal.SIGCHLD, wait_child)
 
 
 MYDSN = "dbname=movie_json_test user=movie_json_user password=Change_me_1st! host=127.0.0.1";
+config = {
+  'user': 'movie_json_user',
+  'password': 'Ch@nge_me_1st',
+  'host': '127.0.0.1',
+  'database': 'movie_json_test',
+  'raise_on_warnings': False
+}
 
 def start_mysql() : 
      print('Starting MySQL')
+     global chosen_lib 
+     chosen_lib =  mysql_yonk_library
+     global connect_string
+     connect_string = config
+     default_values = chosen_lib.load_db(config)
      
 def start_pg() : 
-     print('Starting PG')     
-     default_values = pg_yonk_library.load_db(MYDSN)
+     print('Starting PG')    
+     global chosen_lib 
+     chosen_lib =  pg_yonk_library
+     global connect_string
+     connect_string = MYDSN
+     default_values = chosen_lib.load_db(connect_string)
      return default_values
      
 def stop_mysql() : 
+
      print('Stop MySQL')
 
 def stop_pg() : 
-     print('Stop PG')     
+     print('Stop PG')
+    
 
 def active_threads_list():
      return 'G:(' + str(len(thread_list1)) + ') R: ('+ str(len(thread_list2)) + ') IU: ('+ str(len(thread_list3)) + ') LT: ('+ str(len(thread_list4)) +') '
@@ -107,7 +127,7 @@ for event in dev.read_loop():
                 print('Black Button #1')
                 print('Running Vacuum')
                 os.system('pmm-admin annotate "Running Vacuum" --tags "Benchmark, Schema Change"')
-                process = multiprocessing.Process(target=pg_yonk_library.run_vacuum, args=(MYDSN,), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.run_vacuum, args=(connect_string,), daemon=True)
                 process.start()
                 
          if event.code == 293: 
@@ -131,7 +151,7 @@ for event in dev.read_loop():
                 print('Black Button #2')
                 print('Refreshing Materialized views #2')
                 os.system('pmm-admin annotate "Running Vacuum" --tags "Benchmark, Schema Change"')
-                process = multiprocessing.Process(target=pg_yonk_library.refresh_all_mat_views, args=(MYDSN,), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.refresh_all_mat_views, args=(connect_string,), daemon=True)
                 process.start()
 
          if event.code == 298: 
@@ -161,14 +181,14 @@ for event in dev.read_loop():
          if event.code == 704: 
              if event.value == 1:
                 print('Green Button #1')
-                process = multiprocessing.Process(target=pg_yonk_library.func_create_drop_title_index, args=(MYDSN,), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.func_create_drop_title_index, args=(connect_string,), daemon=True)
                 process.start()
                 os.system('pmm-admin annotate "add/dropped title index" --tags "Benchmark, Schema Change"')
                 
          if event.code == 705: 
              if event.value == 1:
                 print('Green Button #2')
-                process = multiprocessing.Process(target=pg_yonk_library.func_create_drop_year_index, args=(MYDSN,), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.func_create_drop_year_index, args=(connect_string,), daemon=True)
                 process.start()
                 os.system('pmm-admin annotate "add/dropped year index" --tags "Benchmark, Schema Change"')
 
@@ -177,7 +197,7 @@ for event in dev.read_loop():
              if event.value == 1:
                 print('Green Button #3')
                 print('Running recreate json table')
-                process = multiprocessing.Process(target=pg_yonk_library.make_copy_of_table, args=(MYDSN,), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.make_copy_of_table, args=(connect_string,), daemon=True)
                 process.start()
                 print("proc pid: " , process.pid)
                 
@@ -239,8 +259,8 @@ for event in dev.read_loop():
          if event.code == 713: 
              if event.value == 1:
                 knobcounter[0] = knobcounter[0] +1
-                #    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(MYDSN,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
-                process = multiprocessing.Process(target=pg_yonk_library.single_user_actions_v2, args=(MYDSN,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist1), daemon=True)
+                #    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(connect_string,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
+                process = multiprocessing.Process(target=chosen_lib.single_user_actions_v2, args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist1), daemon=True)
                 process.start()
                 activelist1[process.pid]=1
                 print("proc pid: " , process.pid)
@@ -265,7 +285,7 @@ for event in dev.read_loop():
          if event.code == 714: 
              if event.value == 1:
                 knobcounter[1] = knobcounter[1] +1
-                process = multiprocessing.Process(target=pg_yonk_library.report_user_actions, args=(MYDSN,1000,0.25,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist2), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.report_user_actions, args=(connect_string,1000,0.25,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist2), daemon=True)
                 process.start()
                 activelist2[process.pid]=1
                 print("proc pid: " , process.pid)
@@ -291,7 +311,7 @@ for event in dev.read_loop():
          if event.code == 716: 
              if event.value == 1:
                 knobcounter[2] = knobcounter[2] +1
-                process = multiprocessing.Process(target=pg_yonk_library.insert_update_delete, args=(MYDSN,1000,.5,0,0,default_values['list_actors'],default_values['list_titles'],default_values['ai_myids'], activelist3), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.insert_update_delete, args=(connect_string,1000,.5,0,0,default_values['list_actors'],default_values['list_titles'],default_values['ai_myids'], activelist3), daemon=True)
                 process.start()
                 activelist3[process.pid]=1
                 print("proc pid: " , process.pid)
@@ -316,7 +336,7 @@ for event in dev.read_loop():
          if event.code == 718:  
              if event.value == 1:
                 knobcounter[3] = knobcounter[3] +1
-                process = multiprocessing.Process(target=pg_yonk_library.long_transactions, args=(MYDSN,1000,2,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist4), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.long_transactions, args=(connect_string,1000,2,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist4), daemon=True)
                 process.start()
                 activelist4[process.pid]=1
                 print("proc pid: " , process.pid)

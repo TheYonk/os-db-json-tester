@@ -2,12 +2,31 @@
   "annotations": {
     "list": [
       {
+        "datasource": "-- Grafana --",
+        "enable": true,
+        "hide": false,
+        "iconColor": "#FF9830",
+        "limit": 100,
+        "matchAny": true,
+        "name": "PMM Annotations",
+        "query": "SELECT\n  toUInt32(ts) * 1000 AS time,\n  description AS text,\n  tags\nFROM\n  event_table\nWHERE\n  ts >= toDateTime($from) AND ts < toDateTime($to)\n",
+        "showIn": 0,
+        "tags": [
+          "pmm_annotation",
+          "$node_name",
+          "$service_name"
+        ],
+        "type": "tags"
+      },
+      {
         "builtIn": 1,
         "datasource": "-- Grafana --",
         "enable": true,
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
+        "limit": 100,
         "name": "Annotations & Alerts",
+        "showIn": 0,
         "type": "dashboard"
       }
     ]
@@ -16,7 +35,7 @@
   "gnetId": null,
   "graphTooltip": 0,
   "id": 116,
-  "iteration": 1631297766142,
+  "iteration": 1632238311716,
   "links": [],
   "panels": [
     {
@@ -268,70 +287,51 @@
       "type": "table"
     },
     {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
       "datasource": "ClickHouse",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "graph": false,
-              "legend": false,
-              "tooltip": false
-            },
-            "lineInterpolation": "smooth",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "spanNulls": true
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
           "unit": "ms"
         },
         "overrides": []
       },
+      "fill": 1,
+      "fillGradient": 0,
       "gridPos": {
         "h": 6,
         "w": 11,
         "x": 0,
         "y": 3
       },
+      "hiddenSeries": false,
       "id": 8,
-      "options": {
-        "graph": {},
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltipOptions": {
-          "mode": "single"
-        }
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
       },
+      "lines": true,
+      "linewidth": 1,
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
       "pluginVersion": "7.5.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
       "targets": [
         {
           "database": "pmm",
@@ -344,20 +344,59 @@
           "format": "time_series",
           "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
           "hide": false,
+          "interval": "",
           "intervalFactor": 1,
           "query": "SELECT\n    $timeSeries as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM $table\n\nWHERE $timeFilter\nand service_name in ( $service_name )\nand service_type in ( $service_type )\nand queryid = '$QueryId'\n\nGROUP BY t, service_type\nORDER BY t\n",
-          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 300) * 300) * 1000 as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM pmm.metrics\n\nWHERE period_start >= toDateTime(1630602840)\nand service_name in ( 'localhost.localdomain-mysql','localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand queryid = 'b650425497cc8cc3b3fd7182969d21c235ab72e5befc49e1f29022de04a37758'\n\nGROUP BY t, service_type\nORDER BY t",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 5) * 5) * 1000 as t,\n    service_type,\n    sum(m_query_time_sum)/sum(m_query_time_cnt)*1000 as ReposnseTime\n\nFROM pmm.metrics\n\nWHERE period_start >= toDateTime(1632058320)\nand service_name in ( 'localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand queryid = '-2386201629243312531'\n\nGROUP BY t, service_type\nORDER BY t",
           "refId": "A",
           "round": "1m",
-          "skip_comments": true,
+          "skip_comments": false,
           "table": "metrics",
           "tableLoading": false
         }
       ],
+      "thresholds": [],
       "timeFrom": null,
+      "timeRegions": [],
       "timeShift": null,
       "title": "Database Response Time",
-      "type": "timeseries"
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:567",
+          "format": "ms",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:568",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     },
     {
       "cards": {
@@ -442,6 +481,129 @@
       "yBucketBound": "auto",
       "yBucketNumber": 10,
       "yBucketSize": null
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "datasource": "ClickHouse",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "fill": 1,
+      "fillGradient": 0,
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 9
+      },
+      "hiddenSeries": false,
+      "id": 14,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [
+        {
+          "title": "Show Details",
+          "url": "http://192.168.1.105/graph/d/pmm-qan/pmm-query-analytics?${__all_variables}"
+        }
+      ],
+      "nullPointMode": "null",
+      "options": {
+        "alertThreshold": true
+      },
+      "percentage": false,
+      "pluginVersion": "7.5.6",
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "database": "pmm",
+          "dateColDataType": "",
+          "dateLoading": false,
+          "dateTimeColDataType": "period_start",
+          "dateTimeType": "DATETIME",
+          "datetimeLoading": false,
+          "extrapolate": true,
+          "format": "time_series",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "intervalFactor": 1,
+          "query": "SELECT\n    $timeSeries as t,\n    service_type,\n    sum(num_queries) / 60 as QPS\nFROM $table\n\nWHERE\n    $timeFilter\n    and service_name in ($service_name)\n    and service_type in ($service_type)\n    and queryid = '$QueryId'\nGROUP BY\n    t,\n    service_type\nORDER BY t\n",
+          "rawQuery": "SELECT\n    (intDiv(toUInt32(period_start), 5) * 5) * 1000 as t,\n    service_type,\n    sum(num_queries)/60 as QPS\nFROM pmm.metrics\n\nWHERE period_start >= toDateTime(1632058440)\nand service_name in ( 'localhost.localdomain-postgresql' )\nand service_type in ( 'mysql','postgresql' )\nand queryid = '-2386201629243312531'\n\nGROUP BY t, service_type\n\nORDER BY t",
+          "refId": "A",
+          "round": "1m",
+          "skip_comments": true,
+          "table": "metrics",
+          "tableLoading": false
+        }
+      ],
+      "thresholds": [
+        {
+          "$$hashKey": "object:1731",
+          "colorMode": "critical",
+          "fill": true,
+          "line": true,
+          "op": "gt",
+          "yaxis": "left"
+        }
+      ],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Database Queries Per Second",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "$$hashKey": "object:3064",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "$$hashKey": "object:3065",
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     },
     {
       "datasource": "ClickHouse",
@@ -602,7 +764,7 @@
         "h": 16,
         "w": 24,
         "x": 0,
-        "y": 9
+        "y": 15
       },
       "id": 6,
       "options": {
@@ -702,7 +864,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 25
+        "y": 31
       },
       "id": 12,
       "options": {
@@ -764,7 +926,7 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
+          "selected": false,
           "text": [
             "All"
           ],
@@ -851,8 +1013,12 @@
         "allValue": null,
         "current": {
           "selected": false,
-          "text": "localhost.localdomain",
-          "value": "localhost.localdomain"
+          "text": [
+            "localhost.localdomain"
+          ],
+          "value": [
+            "localhost.localdomain"
+          ]
         },
         "datasource": null,
         "definition": "label_values(up, node_name)",
@@ -907,12 +1073,12 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "",
   "title": "Solo Query Deep Dive",
   "uid": "V1kavNI7z",
-  "version": 17
+  "version": 23
 }

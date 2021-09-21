@@ -125,6 +125,7 @@ create table movies_normalized_user_comments(
   ai_myid int,
   rating int,
   comment text,
+  imdb_id varchar(20),
   comment_add_time timestamp WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP, 
   comment_update_time timestamp WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

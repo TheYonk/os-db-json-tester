@@ -245,7 +245,7 @@ def func_find_index (mydsn, table_name, index_name) :
         return(x)
 
 def func_create_materialized_view_votes(mydsn) :
-    createmtlv = "create materialized view if not exists  view_voting_counts as select a.ai_myid, title, imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by a.ai_myid, title, imdb_id";        
+    createmtlv = "create materialized view if not exists  view_voting_counts as select a.ai_myid, title, a.imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by a.ai_myid, title, a.imdb_id";        
     x = query_db_new_connect(mydsn, createmtlv, (), 0)
     return(x)
     
@@ -255,7 +255,7 @@ def func_refreshed_materialized_view_votes(mydsn) :
     return(x)
     
 def func_create_materialized_view_movies_by_year(mydsn)  :
-    createmtlv = "create materialized view if not exists view_year_counts as select year, count(distinct imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by year";        
+    createmtlv = "create materialized view if not exists view_year_counts as select year, count(distinct b.imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by year";        
     x = query_db_new_connect(mydsn, createmtlv, (), 0)
     return(x)
     
