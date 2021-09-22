@@ -13,6 +13,7 @@ import os
 
 dev = evdev.InputDevice('/dev/input/event15')
 
+
 #async def helper(device):
 #    async for ev in device.async_read_loop():
 #        print(repr(ev))
@@ -93,6 +94,17 @@ def stop_pg() :
 
 def active_threads_list():
      return 'G:(' + str(len(thread_list1)) + ') R: ('+ str(len(thread_list2)) + ') IU: ('+ str(len(thread_list3)) + ') LT: ('+ str(len(thread_list4)) +') '
+
+
+for flipped in dev.active_keys():
+    if flipped == 288:
+        stop_mysql()
+        print('Setting up PG')
+        default_values = start_pg()
+    else:
+        stop_pg()
+        print('Setting up MySQL')
+        default_values = start_mysql()   
      
 for event in dev.read_loop():
        if event.type == 1:
@@ -108,12 +120,33 @@ for event in dev.read_loop():
                 print('Black Switch off!') 
                 stop_pg()
                 print('Set to MySQL')
-                start_mysql()
+                default_values = start_mysql()
                 
          if event.code == 289:
              if event.value == 1:
                 print('Red Switch Flipped')
-             
+                print('Full Stop!')
+                knobcounter[0] = 0
+                for key in activelist1:
+                    activelist1[key]=0
+                thread_list1 = []
+                
+                knobcounter[1] = 0
+                for key in activelist2:
+                    activelist2[key]=0
+                thread_list2 = []
+                
+                knobcounter[2] = 0
+                for key in activelist3:
+                    activelist3[key]=0
+                thread_list3 = []
+                
+                knobcounter[3] = 0
+                for key in activelist4:
+                    activelist4[key]=0
+                thread_list4 = []
+                os.system('pmm-admin annotate "Full Stop Run" --tags "Benchmark, Workload Change"')
+                
          if event.code == 290: 
              if event.value == 1:
                 print('Blue Button')
@@ -125,8 +158,8 @@ for event in dev.read_loop():
          if event.code == 292: 
              if event.value == 1:
                 print('Black Button #1')
-                print('Running Vacuum')
-                os.system('pmm-admin annotate "Running Vacuum" --tags "Benchmark, Schema Change"')
+                print('Running Vacuum/optimize')
+                os.system('pmm-admin annotate "Running Vacuum/Optimize" --tags "Benchmark, Schema Change"')
                 process = multiprocessing.Process(target=chosen_lib.run_vacuum, args=(connect_string,), daemon=True)
                 process.start()
                 
@@ -299,7 +332,7 @@ for event in dev.read_loop():
          if event.code == 717: 
              if event.value == 1:
                 knobcounter[2] = knobcounter[2] -1
-                if knobcounter[1] > 0:
+                if knobcounter[2] > 0:
                    process = thread_list3.pop()
                    activelist3[process.pid]=0
                    print("proc pid: " , process.pid)
@@ -325,7 +358,7 @@ for event in dev.read_loop():
          if event.code == 719: 
              if event.value == 1:
                 knobcounter[3] = knobcounter[3] - 1
-                if knobcounter[1] > 0:
+                if knobcounter[3] > 0:
                    process = thread_list4.pop()
                    activelist4[process.pid]=0
                    print("proc pid: " , process.pid)
@@ -348,3 +381,28 @@ for event in dev.read_loop():
                 print('Knob #4 Up : ' + str(knobcounter[3]))
 
 dev.close()
+
+except KeyboardInterrupt:
+    # quit
+    print('Starting Shutdown!')
+    dev.close()
+    knobcounter[0] = 0
+    for key in activelist1:
+        activelist1[key]=0
+    thread_list1 = []
+    
+    knobcounter[1] = 0
+    for key in activelist2:
+        activelist2[key]=0
+    thread_list2 = []
+    
+    knobcounter[2] = 0
+    for key in activelist3:
+        activelist3[key]=0
+    thread_list3 = []
+    
+    knobcounter[3] = 0
+    for key in activelist4:
+        activelist4[key]=0
+    thread_list4 = []
+    os.system('pmm-admin annotate "Full Shutdown" --tags "Benchmark, Start-Stop"')

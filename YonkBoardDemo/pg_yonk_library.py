@@ -374,7 +374,7 @@ def func_find_update_comments (MYDSN,sleeptime) :
         if(len(x) >0):
           y = x.pop()
           mycursor.execute(delete, (y[0],))
-        time.sleep(sleeptime)
+        time.sleep(sleeptime/2)
         myconnect.commit()
         return x        
 
