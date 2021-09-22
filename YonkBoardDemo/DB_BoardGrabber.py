@@ -10,6 +10,7 @@ import signal
 import logging
 import errno
 import os
+import time
 
 dev = evdev.InputDevice('/dev/input/event15')
 
@@ -74,6 +75,7 @@ def start_mysql() :
      global connect_string
      connect_string = config
      default_values = chosen_lib.load_db(config)
+     return default_values
      
 def start_pg() : 
      print('Starting PG')    
@@ -95,18 +97,19 @@ def stop_pg() :
 def active_threads_list():
      return 'G:(' + str(len(thread_list1)) + ') R: ('+ str(len(thread_list2)) + ') IU: ('+ str(len(thread_list3)) + ') LT: ('+ str(len(thread_list4)) +') '
 
-
-for flipped in dev.active_keys():
+try:
+ os.system('pmm-admin annotate "Full Start" --tags "Benchmark, Start-Stop"')    
+ for flipped in dev.active_keys():
     if flipped == 288:
         stop_mysql()
         print('Setting up PG')
         default_values = start_pg()
-    else:
-        stop_pg()
-        print('Setting up MySQL')
-        default_values = start_mysql()   
+ if 'flipped' not in locals():
+    stop_pg()
+    print('Setting up MySQL')
+    default_values = start_mysql()   
      
-for event in dev.read_loop():
+ for event in dev.read_loop():
        if event.type == 1:
          #print(str(event))
          if event.code == 288:
@@ -369,7 +372,7 @@ for event in dev.read_loop():
          if event.code == 718:  
              if event.value == 1:
                 knobcounter[3] = knobcounter[3] +1
-                process = multiprocessing.Process(target=chosen_lib.long_transactions, args=(connect_string,1000,2,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist4), daemon=True)
+                process = multiprocessing.Process(target=chosen_lib.long_transactions, args=(connect_string,1000,1.5,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], activelist4), daemon=True)
                 process.start()
                 activelist4[process.pid]=1
                 print("proc pid: " , process.pid)
@@ -380,7 +383,7 @@ for event in dev.read_loop():
                 
                 print('Knob #4 Up : ' + str(knobcounter[3]))
 
-dev.close()
+ dev.close()
 
 except KeyboardInterrupt:
     # quit
@@ -405,4 +408,8 @@ except KeyboardInterrupt:
     for key in activelist4:
         activelist4[key]=0
     thread_list4 = []
+    print('waiting 10 seconds to shutdown!')
     os.system('pmm-admin annotate "Full Shutdown" --tags "Benchmark, Start-Stop"')
+    time.sleep(10)
+    print('shutdown over!')
+    
