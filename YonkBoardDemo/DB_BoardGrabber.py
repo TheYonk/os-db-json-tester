@@ -12,7 +12,7 @@ import errno
 import os
 import time
 
-dev = evdev.InputDevice('/dev/input/event15')
+dev = evdev.InputDevice('/dev/input/event3')
 
 
 #async def helper(device):
@@ -169,18 +169,35 @@ try:
          if event.code == 293: 
              if event.value == 1:
                 print('Toggle #1 down')
+                print('Changeing PK to INT!')
+                os.system('pmm-admin annotate "PK Changing to int" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_int, args=(connect_string,), daemon=True)
+                process.start()
              
          if event.code == 294: 
              if event.value == 1:
                 print('Toggle #1 up')
+                print('Changeing PK to INT!')
+                os.system('pmm-admin annotate "PK Changing to int" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_int, args=(connect_string,), daemon=True)
+                process.start()
              
          if event.code == 295: 
              if event.value == 1:
                 print('Toggle #2 down')
+                print('Changeing PK to BigINT!')
+                os.system('pmm-admin annotate "PK Changing to Bigint" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_bigint, args=(connect_string,), daemon=True)
+                process.start()
+                
              
          if event.code == 296: 
              if event.value == 1:
                 print('Toggle #2 up')
+                print('Changeing PK to BigINT!')
+                os.system('pmm-admin annotate "PK Changing to Bigint" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_bigint, args=(connect_string,), daemon=True)
+                process.start()
              
          if event.code == 297: 
              if event.value == 1:
@@ -193,10 +210,18 @@ try:
          if event.code == 298: 
              if event.value == 1:
                 print('Toggle #3 down')
+                print('Changeing PK to varchar!')
+                os.system('pmm-admin annotate "PK Changing to Varchar" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_varchar, args=(connect_string,), daemon=True)
+                process.start()
              
          if event.code == 299: 
              if event.value == 1:
                 print('Toggle #3 up')
+                print('Changeing PK to varchar!')
+                os.system('pmm-admin annotate "PK Changing to Varchar" --tags "Benchmark, Schema Change"')
+                process = multiprocessing.Process(target=chosen_lib.func_pk_varchar, args=(connect_string,), daemon=True)
+                process.start()
                        
          if event.code == 300:
              if event.value == 1:

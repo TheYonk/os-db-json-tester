@@ -3,12 +3,19 @@ import random
 import argparse
 import threading
 import logging
-import psycopg2
+import mysql.connector
 import string
 import os
 
+config = {
+  'user': 'movie_json_user',
+  'password': 'Ch@nge_me_1st',
+  'host': '127.0.0.1',
+  'database': 'movie_json_test',
+  'raise_on_warnings': True
+}
 
-def load_db(MYDSN): 
+def load_db(config): 
     print ('inside load function')
     
     load_ids = "select ai_myid, imdb_id, year from movies_normalized_meta"
@@ -29,9 +36,10 @@ def load_db(MYDSN):
     movie_years= dict()
     ai_myids=[]
 
-    #MYDSN = pg_return_dsn()
-
-    cnx = psycopg2.connect(MYDSN)
+    #config = pg_return_dsn()
+    cnx = mysql.connector.connect(**config)
+    
+    #cnx = mysql.connector.connect(**config)
     #cnx.set_session(readonly=True, autocommit=True)
     cursor = cnx.cursor()
 
@@ -46,7 +54,7 @@ def load_db(MYDSN):
 
     #cursor.execute(comments_cleanup)
     #cnx.commit()
-    #func_fill_random_comments(MYDSN,ai_myids,100000)
+    #func_fill_random_comments(config,ai_myids,100000)
     
     cursor.execute(load_actors)
 
@@ -71,30 +79,40 @@ def load_db(MYDSN):
 
 def query_db(cnx,sql,parms,fetch):
       x=[]
-      cursor = cnx.cursor()
+      cursor = cnx.cursor(buffered=True)
       cursor.execute(sql, parms)      
       if fetch:
          x = cursor.fetchall()
       cnx.commit();
       return(x)
 
-def query_db_new_connect(MYDSN,sql,parms,fetch):
+def query_db_new_connect(config,sql,parms,fetch):
       x=[]
-      connect = psycopg2.connect(MYDSN)  
-      cursor = connect.cursor()
-      cursor.execute(sql, parms)
+      cnx = mysql.connector.connect(**config)
+      cursor = cnx.cursor(buffered=True)
+      try:
+        if parms == ():
+           cursor.execute(sql)
+        else :
+           cursor.execute(sql, parms)
+      except mysql.connector.Error as err:
+        print("problem with general new connect_query")
+        print("Something went wrong: {}".format(err))              
+        print(sql, parms)
+        pass
+        
       if fetch:
          x = cursor.fetchall()
-      connect.commit()
-      connect.close()
+      cnx.commit()
+      cnx.close()
       return(x)
 
-def new_connection(MYDSN):
-    connect = psycopg2.connect(MYDSN)  
-    return connect
+def new_connection(config):
+    cnx = mysql.connector.connect(**config)
+    return cnx
       
       
-def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist1):
+def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist1):
     current_time = 0
     start_time = 0
     qry = 0
@@ -112,15 +130,15 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     
     if create_new_connection : 
         my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
+        parm1 = mysql.connector.connect(**config) 
         
     else :  
         if create_new_connection_per_qry :
            my_query = query_db_new_connect
-           parm1 = MYDSN
+           parm1 = config
         else : 
            my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
+           parm1 = mysql.connector.connect(**config)
            parm1.commit()  
            
     letters = string.ascii_lowercase
@@ -133,7 +151,7 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
               parm1.commit()  
               parm1.close()
               my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
+              parm1 = mysql.connector.connect(**config)
                 
          search_actor = random.choice(list_actors)
          search_title = random.choice(list_tiles)
@@ -197,7 +215,15 @@ def func_find_movies_by_id (qry_func,parm1,id) :
 def func_update_vote_movie (qry_func,parm1,id, upvote, downvote) :
         simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"
         myparm =  (upvote,downvote,id)
-        x = qry_func(parm1, simulate_updating_movie_record_with_vote,myparm,0)
+        x = 0 
+        try:
+          x = qry_func(parm1, simulate_updating_movie_record_with_vote,myparm,0)
+        except mysql.connector.Error as err:
+          print("problem with long running select update on vote")
+          print("Something went wrong: {}".format(err))              
+          print(upvote, id)
+
+          pass
         return x     
 
 def func_find_up_down_votes (qry_func,parm1,id ) :
@@ -210,58 +236,71 @@ def func_find_movie_comments (qry_func,parm1,id ) :
         x = qry_func(parm1, query,(id,),1)
         return x    
 
-def func_create_drop_title_index (mydsn) :
-        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
+def func_create_drop_title_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
         print('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
-        drop_index = "drop index idx_nmm_title"
+        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
         
         if val[0][0] == 0:
            print('creating index on Title')
-           x = query_db_new_connect(mydsn, create_index,(),0)
+           x = query_db_new_connect(config, create_index,(),0)
         else :
            print('dropping index on Title') 
-           x = query_db_new_connect(mydsn, drop_index,(),0)
+           x = query_db_new_connect(config, drop_index,(),0)
         return x    
         
-def func_create_drop_year_index (mydsn) :
-        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
+def func_create_drop_year_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
         print('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year"
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
            print('creating index on Year')
-           x = query_db_new_connect(mydsn, create_index,(),0)
+           x = query_db_new_connect(config, create_index,(),0)
         else :
            print('dropping index on Year') 
-           x = query_db_new_connect(mydsn, drop_index,(),0)
+           x = query_db_new_connect(config, drop_index,(),0)
         return x    
 
         
-def func_find_index (mydsn, table_name, index_name) :        
-        findIdx = "select count(*) from  pg_class t, pg_class i, pg_index ix, pg_attribute a where  t.oid = ix.indrelid and i.oid = ix.indexrelid  and a.attrelid = t.oid  and a.attnum = ANY(ix.indkey)  and t.relkind = 'r' and t.relname like %s and i.relname=%s";        
-        x = query_db_new_connect(mydsn, findIdx, (table_name, index_name), 1)
+def func_find_index (config, table_name, index_name) :        
+        findIdx = "select count(*) from information_schema.statistics where table_name = %s and index_name = %s;";        
+        x = query_db_new_connect(config, findIdx, (table_name, index_name), 1)
         return(x)
 
-def func_create_materialized_view_votes(mydsn) :
-    createmtlv = "create materialized view if not exists  view_voting_counts as select a.ai_myid, title, a.imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by a.ai_myid, title, a.imdb_id";        
-    x = query_db_new_connect(mydsn, createmtlv, (), 0)
+def func_create_materialized_view_votes(config) :
+    
+    createmtlv = "CREATE TABLE if not exists view_voting_counts (ai_myid int DEFAULT NULL,  title varchar(255) DEFAULT NULL, imdb_id varchar(20) DEFAULT NULL,  comment_count int NOT NULL DEFAULT '0',  max_rate decimal(3,2) DEFAULT NULL, avg_rate decimal(14,4) DEFAULT NULL, upvotes decimal(32,0) DEFAULT NULL, downvotes decimal(32,0) DEFAULT NULL ) ENGINE=InnoDB"; 
+    x = query_db_new_connect(config, createmtlv, (), 0)
     return(x)
     
-def func_refreshed_materialized_view_votes(mydsn) :
-    createmtlv = "REFRESH MATERIALIZED VIEW view_voting_counts";        
-    x = query_db_new_connect(mydsn, createmtlv, (), 0)
+def func_refreshed_materialized_view_votes(config) :
+    myconnect = new_connection(config)
+    mycursor = myconnect.cursor()
+    createmtlv = "delete from view_voting_counts";        
+    x = mycursor.execute(createmtlv)
+    createmtlv = "insert into view_voting_counts select a.ai_myid, title, a.imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by a.ai_myid, title, a.imdb_id";               
+    x = mycursor.execute(createmtlv)
+    myconnect.commit()
+    myconnect.close()
     return(x)
     
-def func_create_materialized_view_movies_by_year(mydsn)  :
-    createmtlv = "create materialized view if not exists view_year_counts as select year, count(distinct b.imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by year";        
-    x = query_db_new_connect(mydsn, createmtlv, (), 0)
+def func_create_materialized_view_movies_by_year(config)  :
+    createmtlv = "CREATE TABLE if not exists  view_year_counts ( year int DEFAULT NULL, movie_count int NOT NULL DEFAULT '0',  avg_imdb_rating decimal(4,2) DEFAULT NULL,  max_rate decimal(4,2) DEFAULT NULL,  avg_rate decimal(14,4) DEFAULT NULL,  upvotes decimal(32,0) DEFAULT NULL,  downvotes decimal(32,0) DEFAULT NULL) ENGINE=InnoDB";  
+    x = query_db_new_connect(config, createmtlv, (), 0)
     return(x)
     
-def func_refreshed_materialized_view_movies_by_year(mydsn)  :            
-    createmtlv = "REFRESH MATERIALIZED VIEW view_year_counts";        
-    x = query_db_new_connect(mydsn, createmtlv, (), 0)
+def func_refreshed_materialized_view_movies_by_year(config)  :            
+    myconnect = new_connection(config)
+    mycursor = myconnect.cursor()
+    createmtlv = "delete from view_year_counts";        
+    x = mycursor.execute(createmtlv)
+    createmtlv = "insert into view_year_counts select year, count(distinct b.imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by year";        
+    x = mycursor.execute(createmtlv)
+    myconnect.commit()
+    myconnect.close()
     return(x)
         
 def func_generate_comment(letters, minsize,maxsize) :
@@ -321,9 +360,9 @@ def func_rpt_material_vote_count(qry_func,parm1,title) :
           x = qry_func(parm1, get_all_votes_fuzzy,(title2,),1)
           return x
                               
-def func_find_movie_by_actor_for_update (MYDSN,actor_name, sleeptime) :
-        myconnect = new_connection(MYDSN)
-        mycursor = myconnect.cursor()
+def func_find_movie_by_actor_for_update (config,actor_name, sleeptime) :
+        myconnect = new_connection(config)
+        mycursor = myconnect.cursor(buffered=True)
         find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != '' for update"
         mycursor.execute(find_movies_by_actor, actor_name)
         x = mycursor.fetchall()
@@ -331,9 +370,9 @@ def func_find_movie_by_actor_for_update (MYDSN,actor_name, sleeptime) :
         myconnect.commit()
         return x
         
-def func_really_bad_for_update (MYDSN, sleeptime, year1, year2) :
-        myconnect = new_connection(MYDSN)
-        mycursor = myconnect.cursor()
+def func_really_bad_for_update (config, sleeptime, year1, year2) :
+        myconnect = new_connection(config)
+        mycursor = myconnect.cursor(buffered=True)
         query = "select ai_myid, title, imdb_rating from movies_normalized_meta where year > %s and year < %s order by imdb_rating desc limit 25 for update  "
         mycursor.execute(query, (year1,year2))
         x = mycursor.fetchall()
@@ -341,24 +380,45 @@ def func_really_bad_for_update (MYDSN, sleeptime, year1, year2) :
         myconnect.commit()
         return x        
 
-def func_find_update_meta (MYDSN, sleeptime, title) :
-        myconnect = new_connection(MYDSN)
-        mycursor = myconnect.cursor()
+def func_find_update_meta (config, sleeptime, title) :
+        myconnect = new_connection(config)
+        mycursor = myconnect.cursor(buffered=True)
         title2 = title[0][0:3]+'%'
         query = "select ai_myid,title, imdb_rating, year from movies_normalized_meta where title like %s for update  "
         update = " update movies_normalized_meta set upvotes = upvotes + 1, imdb_rating = imdb_rating * 1, year = year where ai_myid = %s  "
-        mycursor.execute(query, (title2,))
-        x = mycursor.fetchall()
+        
+        try:
+          mycursor.execute(query, (title2,))
+          x = mycursor.fetchall()
+        except mysql.connector.Error as err:
+          print("problem with long running select update on meta")
+          print("Something went wrong: {}".format(err))              
+          print(update, y[0])
+          pass
+        except:
+          print("problem with update LT, non-mysql,func_find_update_meta 1")
+          print(update, y[0])
         time.sleep(sleeptime)
         y = random.choice(x)
-        mycursor.execute(update, (y[0],))
+        try:
+          mycursor.execute(update, (y[0],))
+          x = mycursor.fetchall()
+        except mysql.connector.Error as err:
+          print("problem with long running update on meta")
+          print("Something went wrong: {}".format(err))              
+          print(update, y[0])
+          pass
+        except:
+          print("problem with update LT, non-mysql,func_find_update_meta 2 ")
+          print(update, y[0])
+          
         time.sleep(sleeptime)
         myconnect.commit()
         return x   
              
-def func_find_update_comments (MYDSN,sleeptime) :
-        myconnect = new_connection(MYDSN)
-        mycursor = myconnect.cursor()
+def func_find_update_comments (config,sleeptime) :
+        myconnect = new_connection(config)
+        mycursor = myconnect.cursor(buffered=True)
         query = "select comment_id, ai_myid, comment_add_time, comment_update_time from movies_normalized_user_comments order by comment_add_time desc limit 25 for update"
         update = "update movies_normalized_user_comments set comment = comment, rating = rating * 1, comment_update_time = current_timestamp where comment_id = %s"
         delete = "delete from movies_normalized_user_comments where comment_id = %s"
@@ -367,21 +427,46 @@ def func_find_update_comments (MYDSN,sleeptime) :
         time.sleep(sleeptime)
         if(len(x) >0):
           y = x.pop()
-          mycursor.execute(update, (y[0],))
+          try:
+            mycursor.execute(update, (y[0],))
+          except mysql.connector.Error as err:
+            print("problem with long running update")
+            print("Something went wrong: {}".format(err))              
+            print(update, y[0])
+            pass
+          except:
+            print("problem with update LT, non-mysql, func_find_update_comments 1")
         if(len(x) >0):
           y = x.pop()
-          mycursor.execute(update, (y[0],))
+          try:
+            mycursor.execute(update, (y[0],))
+          except mysql.connector.Error as err:
+            print("problem with long running update")
+            print("Something went wrong: {}".format(err))              
+            print(update, y[0])
+            pass
+          except:
+            print("problem with update LT, non-mysql, func_find_update_comments 2")
         if(len(x) >0):
           y = x.pop()
-          mycursor.execute(delete, (y[0],))
+          try:
+            mycursor.execute(delete, (y[0],))
+          except mysql.connector.Error as err:
+            print("problem with long running delete")
+            print("Something went wrong: {}".format(err))              
+            print(delete, y[0])
+            pass
+          except:
+            print("problem with update LT, non-mysql, func_find_update_comments 3")
         time.sleep(sleeptime/2)
         myconnect.commit()
+        myconnect.close()
         return x        
 
-def func_fill_random_comments (MYDSN,list_ids,comments_to_add) :
+def func_fill_random_comments (config,list_ids,comments_to_add) :
     
-     myconnect = new_connection(MYDSN)
-     mycursor = myconnect.cursor()
+     myconnect = new_connection(config)
+     mycursor = myconnect.cursor(buffered=True)
      letters = string.ascii_lowercase
      i = 0
      while i < comments_to_add :
@@ -391,123 +476,128 @@ def func_fill_random_comments (MYDSN,list_ids,comments_to_add) :
          search_id = random.choice(list_ids)
          simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )" 
          mycursor.execute(simulate_comment_on_movie, (search_id,vote['uservote'], comment))
-     
-     myconnect.commit();             
+     myconnect.commit()
+     myconnect.close()
      return i;
 
-def func_delete_random_comments (MYDSN,list_ids,comments_to_remove) :
+def func_delete_random_comments (config,list_ids,comments_to_remove) :
     
-     myconnect = new_connection(MYDSN)
-     mycursor = myconnect.cursor()
+     myconnect = new_connection(config)
+     mycursor = myconnect.cursor(buffered=True)
+     mycursor2 = myconnect.cursor(buffered=True)
+     
      letters = string.ascii_lowercase
      i = 0
      while i < comments_to_remove :
          i = i + 1
          search_id = random.choice(list_ids)
-         delete = "delete from movies_normalized_user_comments where comment_id in (select comment_id from movies_normalized_user_comments where ai_myid = %s limit 3  )" 
-         #print('delete id: ',search_id)
-         mycursor.execute(delete, (search_id,))
+         select = "select comment_id from movies_normalized_user_comments where ai_myid = %s limit 3"
+         mycursor.execute(select,(search_id,))
+         for (comment_id) in mycursor:
+             delete = "delete from movies_normalized_user_comments where comment_id = %s" 
+             try:
+               mycursor2.execute(delete, comment_id)
+             except mysql.connector.Error as err:
+               print("problem with delete")
+               print("Something went wrong: {}".format(err))              
+               print(delete, comment_id)
+               pass
+             except:
+               print("problem with delete, non-mysql")
+               break
+               
      myconnect.commit();             
      return i;
 
 
-def func_update_random_comments (MYDSN,list_ids,comments_to_update) :
-        myconnect = new_connection(MYDSN)
-        mycursor = myconnect.cursor()
+def func_update_random_comments (config,list_ids,comments_to_update) :
+        myconnect = new_connection(config)
+        mycursor = myconnect.cursor(buffered=True)
         i = 0
         while i < comments_to_update :
             i = i + 1
             search_id = random.choice(list_ids)
             update = "update movies_normalized_user_comments set comment = comment, rating = rating * 1, comment_update_time = current_timestamp where ai_myid = %s"
-            mycursor.execute(update, (search_id,))
+            try:
+              mycursor.execute(update, (search_id,))
+            except mysql.connector.Error as err:
+              print("problem with Update")
+              print("Something went wrong: {}".format(err))              
+              print(update, search_id)
+              pass
+            except:
+              print("problem with Update, non-mysql")
+              break
         myconnect.commit();             
         return i;
         
      
-def run_vacuum (MYDSN):
-     myconnect = new_connection(MYDSN)
-     myconnect.set_session(autocommit=True)
-     mycursor = myconnect.cursor()
+def run_vacuum(config):
+     myconnect = new_connection(config)
+     mycursor = myconnect.cursor(buffered=True)
     
-    
-     query = "vacuum full analyze movies_normalized_meta"
-     x = mycursor.execute(query, ())
-     
-     query = "vacuum full analyze movies_normalized_user_comments"
-     x = mycursor.execute(query, ())
-     
+     try:
+       query = "optimize table movies_normalized_meta"
+       x = mycursor.execute(query, ())
+       query = "optimize table movies_normalized_user_comments"
+       x = mycursor.execute(query, ())
+     except mysql.connector.Error as err:
+       print("problem with Update")
+       print("Something went wrong: {}".format(err))              
+       print(update, search_id)
      exit()
      
-def make_copy_of_table (MYDSN):
+def make_copy_of_table (config):
      query = "DROP TABLE IF EXISTS copy_of_json_table"
-     x = query_db_new_connect(MYDSN, query, (), 0)
+     x = query_db_new_connect(config, query, (), 0)
      
-     query = "create table copy_of_json_table ( ai_myid serial primary key, imdb_id varchar(255) generated always as (jsonb_column ->> 'imdb_id') stored, title varchar(255) generated always as (jsonb_column ->> 'title') stored,imdb_rating decimal(5,2) generated always as ((jsonb_column  ->> 'imdb_rating')::numeric) stored,	overview text generated always as (jsonb_column ->> 'overview') stored,	director jsonb generated always as ((jsonb_column ->> 'director')::json) stored, country varchar(100) generated always as (jsonb_column ->> 'country') stored, jsonb_column jsonb, json_column json) "
-     x = query_db_new_connect(MYDSN, query, (), 0)
+     query = "create table copy_of_json_table ( ai_myid int AUTO_INCREMENT primary key, imdb_id varchar(255) generated always as (`json_column` ->> '$.imdb_id'),	title varchar(255) generated always as (`json_column` ->> '$.title'),imdb_rating decimal(5,2) generated always as (json_value(json_column, '$.imdb_rating')) , overview text generated always as (`json_column` ->> '$.overview'),  director json generated always as (`json_column` ->> '$.director'), country varchar(100) generated always as (`json_column` ->> '$.country'), json_column json, key(title), key(imdb_id) ) engine = innodb"
+     x = query_db_new_connect(config, query, (), 0)
      
-     query = "insert into copy_of_json_table (jsonb_column, json_column) select jsonb_column, json_column from movies_json_generated"
-     x = query_db_new_connect(MYDSN, query, (), 0)
+     query = "insert into copy_of_json_table (json_column) select json_column from movies_json_generated"
+     x = query_db_new_connect(config, query, (), 0)
      
      exit()
 
-def refresh_all_mat_views (MYDSN):
+def refresh_all_mat_views (config):
     
-    x = func_create_materialized_view_votes(MYDSN)
-    x = func_refreshed_materialized_view_votes(MYDSN)
-    x = func_create_materialized_view_movies_by_year(MYDSN)
-    x = func_refreshed_materialized_view_movies_by_year(MYDSN)
+    x = func_create_materialized_view_votes(config)
+    x = func_refreshed_materialized_view_votes(config)
+    x = func_create_materialized_view_movies_by_year(config)
+    x = func_refreshed_materialized_view_movies_by_year(config)
     exit()
-
-def func_pk_bigint (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type bigint using ai_myid::bigint"
+    
+    
+def func_pk_bigint (config) :
+            alter_pk = "alter table movies_normalized_meta modify column ai_myid bigint AUTO_INCREMENT "
             print('Changing PK to  bigint') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
+            x = query_db_new_connect(config, alter_pk,(),0)
             print('done Changing PK') 
             
             return x
 
-def func_pk_int (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-                
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type int using ai_myid::int"
+def func_pk_int (config) :
+            alter_pk = "alter table movies_normalized_meta modify column ai_myid int AUTO_INCREMENT"
             print('Changing PK to  int') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
+            x = query_db_new_connect(config, alter_pk,(),0)
             print('done Changing PK') 
             
             return x
             
-def func_pk_varchar (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-                
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type varchar(32) using ai_myid::varchar "
+def func_pk_varchar (config) :
+            alter_pk = "alter table movies_normalized_meta modify column ai_myid varchar(32) "
             print('Changing PK to  Varchar') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
+            x = query_db_new_connect(config, alter_pk,(),0)
             print('done Changing PK') 
             
             return x
-                    
-def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist2):
+        
+def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist2):
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
+    error = 0 
     
     print("pid: " , os.getpid())
     print("Active List: " , str(activelist2))
@@ -515,28 +605,31 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
     
     if create_new_connection : 
         my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
+        parm1 = mysql.connector.connect(**config)  
         
     else :  
         if create_new_connection_per_qry :
            my_query = query_db_new_connect
-           parm1 = MYDSN
+           parm1 = config
         else : 
            my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
+           parm1 = mysql.connector.connect(**config)
            parm1.commit()  
            
     letters = string.ascii_lowercase
       
     start_time = time.perf_counter()
  
-    while activelist2[os.getpid()] == 1 :         
+    while activelist2[os.getpid()] == 1 : 
+         if error == 1 :
+            print('Starting Over! ', os.getpid())
+            error = 0        
          current_time = time.perf_counter() - start_time    
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
               my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
+              parm1 = mysql.connector.connect(**config)
                 
          search_actor = random.choice(list_actors)
          search_title = random.choice(list_tiles)
@@ -567,7 +660,7 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
 #threadlist = []
 
 #while cnt <  args.user_count:   
-#    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(MYDSN,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
+#    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(config,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
 #    threadcount = threadcount + 1    
 #    threadlist[-1].start()
 #    cnt = cnt + 1
@@ -581,27 +674,28 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
 #debug = 0
 #qry = 0;
 
-def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,ai_myids,activelist3):
+def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,ai_myids,activelist3):
     
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
+    error = 0
     print("pid: " , os.getpid())
     print("Active List: " , str(activelist3))
    
     
     if create_new_connection : 
         my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
+        parm1 = mysql.connector.connect(**config)  
         
     else :  
         if create_new_connection_per_qry :
            my_query = query_db_new_connect
-           parm1 = MYDSN
+           parm1 = config
         else : 
            my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
+           parm1 = mysql.connector.connect(**config)
            parm1.commit()  
            
     letters = string.ascii_lowercase
@@ -609,31 +703,44 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     start_time = time.perf_counter()
  
     while activelist3[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter() - start_time   
+         if error == 1 :
+             print('Starting Over! ', os.getpid())
+             error = 0 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
               my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
+              parm1 = mysql.connector.connect(**config)
                 
          search_actor = random.choice(list_actors)
          search_title = random.choice(list_tiles)
          search_id = random.choice(ai_myids)
          
-         x = func_fill_random_comments(MYDSN,ai_myids,10) 
-         x = func_update_random_comments(MYDSN, ai_myids, 5) 
-         x = func_delete_random_comments(MYDSN,ai_myids,6) 
-         time.sleep(sleep_timer)
+         try: 
+           x = func_fill_random_comments(config,ai_myids,10) 
+           x = func_update_random_comments(config, ai_myids, 5) 
+           x = func_delete_random_comments(config,ai_myids,6) 
+           time.sleep(sleep_timer)
+         except: 
+           print("problem in the insert update delete part 1")
+           print('pid:', os.getpid())
+           error = 1
+           pass
          
-         
-         r = random.randint(1,3)
-         if r == 1:
-            x = func_fill_random_comments(MYDSN,ai_myids,5)
-         if r == 2:
-            x = func_delete_random_comments(MYDSN,ai_myids,2)
-         if r == 3 :
-            x = func_update_random_comments(MYDSN, ai_myids, 2) 
-
+         try: 
+            r = random.randint(1,3)
+            if r == 1:
+              x = func_fill_random_comments(config,ai_myids,5)
+            if r == 2:
+              x = func_delete_random_comments(config,ai_myids,2)
+            if r == 3 :
+              x = func_update_random_comments(config, ai_myids, 2) 
+         except: 
+           print("problem in the insert update delete part 2")
+           print('pid:', os.getpid())
+           error = 1
+           pass
          time.sleep(sleep_timer)
          
  
@@ -646,27 +753,28 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     exit()
     
 
-def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist4):
+def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist4):
     
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
+    error = 0
     print("pid: " , os.getpid())
     print("Active List: " , str(activelist4))
    
     
     if create_new_connection : 
         my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
+        parm1 = mysql.connector.connect(**config)  
         
     else :  
         if create_new_connection_per_qry :
            my_query = query_db_new_connect
-           parm1 = MYDSN
+           parm1 = config
         else : 
            my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
+           parm1 = mysql.connector.connect(**config)
            parm1.commit()  
            
     letters = string.ascii_lowercase
@@ -674,12 +782,15 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     start_time = time.perf_counter()
  
     while activelist4[os.getpid()] == 1 :         
+         if error == 1 :
+             print('Starting Over! ', os.getpid())
+             error = 0
          current_time = time.perf_counter() - start_time    
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
               my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
+              parm1 = mysql.connector.connect(**config)
                 
          search_actor = random.choice(list_actors)
          search_title = random.choice(list_tiles)
@@ -688,15 +799,20 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
          year2 =  year1 + 10	
          locktime = (random.randint(50,1000)/100) 
          
-         r = random.randint(1,4)
-         if r == 1:
-            x = func_really_bad_for_update (MYDSN, locktime, year1, year2)
-         if r == 2:
-            x = func_find_movie_by_actor_for_update (MYDSN,search_actor,locktime)
-         if r == 3 :
-            x = func_find_update_meta (MYDSN, locktime, search_title) 
-         if r == 4 :
-            x = func_find_update_comments (MYDSN,locktime)
+         try: 
+           r = random.randint(1,4)
+           if r == 1:
+             x = func_really_bad_for_update (config, locktime, year1, year2)
+           if r == 2:
+              x = func_find_movie_by_actor_for_update (config,search_actor,locktime)
+           if r == 3 :
+              x = func_find_update_meta (config, locktime, search_title) 
+           if r == 4 :
+              x = func_find_update_comments (config,locktime)
+         except: 
+           print("error in long running transaction")
+           print('pid:', os.getpid())
+           error = 1
          
  
     if not create_new_connection_per_qry :

@@ -180,6 +180,8 @@ def func_find_movie_by_actor (qry_func,parm1,actor_name) :
         return x
         
 def func_find_movies_by_title (qry_func,parm1,title_name) :
+        movie_json_test="select ai_myid, jsonb_column->>'imdb_id', jsonb_column->>'title', jsonb_column->>'imdb_rating' from movies_jsonb where jsonb_column->>'title' = %s"
+    
         find_movies_by_title = "select ai_myid, imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
         x = qry_func(parm1, find_movies_by_title,title_name,1)
         return x
@@ -190,7 +192,7 @@ def func_comment_on_movie (qry_func,parm1,movieid,vote,comment) :
         qry_func(parm1, simulate_comment_on_movie,myparm,0)
         
 def func_find_movies_by_id (qry_func,parm1,id) :
-        simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+        movie_json_test="select ai_myid, jsonb_column->>'imdb_id', jsonb_column->>'title', jsonb_column->>'imdb_rating' from movies_jsonb where jsonb_column->>'imdb_id' = %s"
         x = qry_func(parm1, simulate_finding_a_movie_record,id,1)
         return x       
 
@@ -457,52 +459,7 @@ def refresh_all_mat_views (MYDSN):
     x = func_create_materialized_view_movies_by_year(MYDSN)
     x = func_refreshed_materialized_view_movies_by_year(MYDSN)
     exit()
-
-def func_pk_bigint (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type bigint using ai_myid::bigint"
-            print('Changing PK to  bigint') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
-            print('done Changing PK') 
-            
-            return x
-
-def func_pk_int (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-                
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type int using ai_myid::int"
-            print('Changing PK to  int') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
-            print('done Changing PK') 
-            
-            return x
-            
-def func_pk_varchar (MYDSN) :
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            
-            cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-                
-            alter_pk = "alter table movies_normalized_meta alter column ai_myid type varchar(32) using ai_myid::varchar "
-            print('Changing PK to  Varchar') 
-            x = query_db_new_connect(MYDSN, cleanup,(),0)
-            refresh_all_mat_views(MYDSN)
-            print('done Changing PK') 
-            
-            return x
-                    
+        
 def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist2):
     current_time = 0
     start_time = 0
