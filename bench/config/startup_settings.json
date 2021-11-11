@@ -5,7 +5,7 @@
 	  	 "name" : "pg",
 	  	 "bench_active" : 1,
       	 "type" : "postgresql",
-      	 "website_workload" : 10,
+      	 "website_workload" : 5,
       	 "reporting_workload" : 1,
       	 "comments_workload" : 5,
       	 "longtrans_workload" : 0
@@ -13,7 +13,7 @@
 	   "mysql" : 
 	   {
 		   "name" : "mysql",
-		   "bench_active" : 0,
+		   "bench_active" : 1,
     	   "type" : "mysql",
    		   "website_workload" : 1,
     	   "reporting_workload" : 0,

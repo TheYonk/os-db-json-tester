@@ -56,7 +56,8 @@ else:
     
     
 new_event = {
-                'name' : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
+                'name' : args.myfile,
+                'desc' : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
              	"event" : args.myevent,	
                 "type" : settings['dbtype'],	
              	"host" :  settings['dbhost'],	

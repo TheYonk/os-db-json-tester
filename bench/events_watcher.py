@@ -69,11 +69,12 @@ while True:
         data = json.load(read_file)
         
     try:    
+       tag = data['name']+'-'+data['host']
        logging.debug('checking %s', myfile ) 
        logging.debug('found event %s', data['event'] ) 
-       os.system('pmm-admin annotate " starting '+  data['event']  +'" --tags "Benchmark, Schema Change"')
+       os.system('pmm-admin annotate " starting '+  data['event']  +'" --tags "Benchmark, Schema Change,'+ tag +'"')
        run_event(data)
-       os.system('pmm-admin annotate " finishing '+  data['event']  +'" --tags "Benchmark, Schema Change"')
+       os.system('pmm-admin annotate " finishing '+  data['event']  +'" --tags "Benchmark, Schema Change,'+ tag +'"')
        logging.debug('Finished processing event %s', data['event'] )
        os.rename(myfile,myfile+'.finished')        
     except Exception as e:

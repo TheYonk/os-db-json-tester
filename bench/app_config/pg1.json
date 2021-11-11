@@ -1,5 +1,6 @@
 {
-    "name": "postgresql Movie Database Test for: pg",
+    "name": "pg",
+    "desc": "postgresql Movie Database Test for: pg",
     "appnode": 1,
     "host": "127.0.0.1",
     "username": "movie_json_user",
@@ -7,9 +8,9 @@
     "database": "movie_json_test",
     "bench_active": 1,
     "type": "postgresql",
-    "website_workload": 7,
-    "reporting_workload": 1,
-    "comments_workload": 5,
+    "website_workload": 18,
+    "reporting_workload": 3,
+    "comments_workload": 6,
     "longtrans_workload": 0,
     "title_idx": 1,
     "year_idx": 1

@@ -37,7 +37,8 @@ else:
   
 
 new_config = {
-                'name' : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
+                "name" : args.myfile,
+                "desc" : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
              	"appnode" : settings['appnode'],	
              	"host" :  settings['dbhost'],	
              	"username" : settings['dbusername'],	
