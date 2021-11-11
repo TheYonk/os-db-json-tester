@@ -157,7 +157,6 @@ try:
          if event.code == 291:
              if event.value == 1:
                 print('Yellow Button') 
-                         
          if event.code == 292: 
              if event.value == 1:
                 print('Black Button #1')
@@ -262,7 +261,6 @@ try:
                 process.start()
                 print("proc pid: " , process.pid)
                 
-                os.system('pmm-admin annotate "creating and loading new json table" --tags "Benchmark, Schema Change"')                
              
          if event.code == 707: 
              if event.value == 1:

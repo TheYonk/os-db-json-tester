@@ -94,7 +94,7 @@ def new_connection(MYDSN):
     return connect
       
       
-def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist1):
+def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist1):
     current_time = 0
     start_time = 0
     qry = 0
@@ -231,21 +231,79 @@ def func_create_drop_year_index (mydsn) :
         drop_index = "drop index idx_nmm_year"
         
         if val[0][0] == 0:
+           logging.debug('creating index on Year')
+           x = query_db_new_connect(mydsn, create_index,(),0)
+        else :
+           logging.debug('dropping index on Year') 
+           x = query_db_new_connect(mydsn, drop_index,(),0)
+        return x   
+        
+def func_create_title_index (mydsn) :
+        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
+        print('value: ', val)
+        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
+        drop_index = "drop index idx_nmm_title"
+        
+        if val[0][0] == 0:
+           logging.debug('creating index on Title')
+           x = query_db_new_connect(mydsn, create_index,(),0)
+        else :
+           logging.debug('Index on Title already exists') 
+           #x = query_db_new_connect(mydsn, drop_index,(),0)
+           x = 0
+        return x   
+                
+def func_drop_title_index (mydsn) :
+        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
+        print('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year"
+        
+        if val[0][0] == 0:
+           logging.debug('Index on Year, does not exist')
+           x = 0
+           #x = query_db_new_connect(mydsn, create_index,(),0)
+        else :
+           logging.debug('dropping index on Year') 
+           x = query_db_new_connect(mydsn, drop_index,(),0)
+        return x   
+         
+def func_create_year_index (mydsn) :
+        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
+        print('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year"
+        
+        if val[0][0] == 0:
            print('creating index on Year')
            x = query_db_new_connect(mydsn, create_index,(),0)
         else :
+           print('Index already exsits') 
+           x = 0
+        return x  
+          
+def func_drop_year_index (mydsn) :
+        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
+        print('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year"
+        
+        if val[0][0] == 0:
+           print('Index on Year does not exist')
+           x = 0
+        else :
            print('dropping index on Year') 
            x = query_db_new_connect(mydsn, drop_index,(),0)
-        return x    
-
+        return x   
         
+                
 def func_find_index (mydsn, table_name, index_name) :        
         findIdx = "select count(*) from  pg_class t, pg_class i, pg_index ix, pg_attribute a where  t.oid = ix.indrelid and i.oid = ix.indexrelid  and a.attrelid = t.oid  and a.attnum = ANY(ix.indkey)  and t.relkind = 'r' and t.relname like %s and i.relname=%s";        
         x = query_db_new_connect(mydsn, findIdx, (table_name, index_name), 1)
         return(x)
 
 def func_create_materialized_view_votes(mydsn) :
-    createmtlv = "create materialized view if not exists  view_voting_counts as select a.ai_myid, title, a.imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by a.ai_myid, title, a.imdb_id";        
+    createmtlv = "create materialized view if not exists  view_voting_counts as select a.ai_myid, title, a.imdb_id, count(*) as comment_count, max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid::int  group by a.ai_myid, title, a.imdb_id";        
     x = query_db_new_connect(mydsn, createmtlv, (), 0)
     return(x)
     
@@ -255,7 +313,7 @@ def func_refreshed_materialized_view_votes(mydsn) :
     return(x)
     
 def func_create_materialized_view_movies_by_year(mydsn)  :
-    createmtlv = "create materialized view if not exists view_year_counts as select year, count(distinct b.imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid  group by year";        
+    createmtlv = "create materialized view if not exists view_year_counts as select year, count(distinct b.imdb_id) as movie_count, avg(imdb_rating) as avg_imdb_rating,  max(rating) as max_rate, avg(rating) as avg_rate, sum(upvotes) as upvotes, sum(downvotes) as downvotes from movies_normalized_user_comments a join movies_normalized_meta b on a.ai_myid=b.ai_myid::int  group by year";        
     x = query_db_new_connect(mydsn, createmtlv, (), 0)
     return(x)
     
@@ -436,7 +494,7 @@ def run_vacuum (MYDSN):
      query = "vacuum full analyze movies_normalized_user_comments"
      x = mycursor.execute(query, ())
      
-     exit()
+     return x
      
 def make_copy_of_table (MYDSN):
      query = "DROP TABLE IF EXISTS copy_of_json_table"
@@ -448,19 +506,29 @@ def make_copy_of_table (MYDSN):
      query = "insert into copy_of_json_table (jsonb_column, json_column) select jsonb_column, json_column from movies_json_generated"
      x = query_db_new_connect(MYDSN, query, (), 0)
      
-     exit()
+     return x
 
 def refresh_all_mat_views (MYDSN):
     
+    logging.debug('-- inside Rebuild Mat Views')
+    logging.debug('-- Create 1 Rebuild Mat Views')
     x = func_create_materialized_view_votes(MYDSN)
+    logging.debug('-- refresh 1 Mat Views')
     x = func_refreshed_materialized_view_votes(MYDSN)
+    logging.debug('-- Create 2 Rebuild Mat Views')
     x = func_create_materialized_view_movies_by_year(MYDSN)
+    logging.debug('-- refresh 2 Mat Views')
     x = func_refreshed_materialized_view_movies_by_year(MYDSN)
-    exit()
+    return x
 
 def func_pk_bigint (MYDSN) :
+            x = 0
+            
+            logging.debug('Dropping Mat View Year_counts')
             cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
             x = query_db_new_connect(MYDSN, cleanup,(),0)
+            
+            logging.debug('Dropping Mat View view_voting_counts')
             
             cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
             x = query_db_new_connect(MYDSN, cleanup,(),0)
@@ -468,14 +536,22 @@ def func_pk_bigint (MYDSN) :
             alter_pk = "alter table movies_normalized_meta alter column ai_myid type bigint using ai_myid::bigint"
             print('Changing PK to  bigint') 
             x = query_db_new_connect(MYDSN, alter_pk,(),0)
+            
+            logging.debug('Rebuild Mat Views, refresh')
+            
             refresh_all_mat_views(MYDSN)
+            
             print('done Changing PK') 
             
             return x
 
 def func_pk_int (MYDSN) :
+            logging.debug('Dropping Mat View view_year_counts')
+            
             cleanup = "drop MATERIALIZED VIEW IF EXISTS view_year_counts"
             x = query_db_new_connect(MYDSN, cleanup,(),0)
+            
+            logging.debug('Dropping Mat View view_voting_counts')
             
             cleanup = "drop MATERIALIZED VIEW IF EXISTS view_voting_counts"
             x = query_db_new_connect(MYDSN, cleanup,(),0)
@@ -483,6 +559,9 @@ def func_pk_int (MYDSN) :
             alter_pk = "alter table movies_normalized_meta alter column ai_myid type int using ai_myid::int"
             print('Changing PK to  int') 
             x = query_db_new_connect(MYDSN, alter_pk,(),0)
+            
+            logging.debug('Rebuild Mat Views, refresh')
+            
             refresh_all_mat_views(MYDSN)
             print('done Changing PK') 
             
@@ -503,7 +582,7 @@ def func_pk_varchar (MYDSN) :
             
             return x
                     
-def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist2):
+def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist2):
     current_time = 0
     start_time = 0
     qry = 0
@@ -581,7 +660,7 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
 #debug = 0
 #qry = 0;
 
-def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,ai_myids,activelist3):
+def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist3):
     
     current_time = 0
     start_time = 0
@@ -646,7 +725,7 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     exit()
     
 
-def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,activelist4):
+def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist4):
     
     current_time = 0
     start_time = 0

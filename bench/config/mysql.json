@@ -1,0 +1,16 @@
+{
+   "default_workload" : 2,
+   "default_reporting" : 0,
+   "default_comments" : 1,
+   "default_longtrans" : 0,
+   "host" : "127.0.0.1",
+   "hostuser" : "yonkovim",
+   "config_dir" : "./data/bench/app_config/",
+   "event_dir" : "./data/bench/events/",
+   "appnode" : 1,
+   "dbhost" : "127.0.0.1",
+   "dbusername" : "movie_json_user",
+   "dbpassword" : "Ch@nge_me_1st",
+   "database" : "movie_json_test", 
+   "dbtype" : "mysql"
+}

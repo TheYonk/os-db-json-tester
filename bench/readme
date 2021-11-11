@@ -1,0 +1,128 @@
+You will need to deploy or load the following:
+
+
+Application Node
+Database Node
+Controller Node
+PMM Node
+
+These can all be on the same boxes or different boxes.  
+
+You can load your database using either the AMI's prebuilt... ask community about these.
+
+or you can install MySQL or PostgreSQL and load the data via the scripts in the MySQl or PostgreSQL directories
+
+For instance for PG:
+pg_json_create_tables.sql -> Creates the tables
+pg_json_load_tables.py -> loads the tables
+
+Note you must have the JSON data for the internet movie database public data set installed in the root of the project under the meta folder.   You can get this via:
+
+ wget https://download.openmmlab.com/datasets/movienet/meta.v1.zip )
+ 
+ Then unpack meta.v1.zip into the meta/ directory
+ 
+ You will need to clone the project off github to each node ( App, controller, and Database )
+ 
+ You will need to config your application and database servers...  check the following:
+ 
+ Under the bench directory you will find :
+ 
+ ./config 
+ 
+ you will see a pg.json and a mysql.json file...
+ 
+ These are the default settings for the test application.  
+ 
+ Here is an example of the pg.json:
+ 
+ {
+    "default_workload" : 2,
+    "default_reporting" : 0,
+    "default_comments" : 1,
+    "default_longtrans" : 0,
+    "host" : "127.0.0.1",
+    "hostuser" : "yonkovim",
+    "config_dir" : "./data/bench/app_config/",
+    "event_dir" : "./data/bench/events/",
+    "appnode" : 1,
+    "dbhost" : "127.0.0.1",
+    "dbusername" : "movie_json_user",
+    "dbpassword" : "Change_me_1st!",
+    "database" : "movie_json_test",
+    "dbtype" : "postgresql"
+ }
+ 
+ 
+ This will be used by other scripts to do the heavy lifting.  
+ 
+ You can create multiple apps if you like, the name of the file needs to change, and you should use a different database... adjust and play as you want.  For the demo I recommend and have tested extensively only with a 1 to one.  
+ 
+ On each node ( dbhost, host and the controller node ) you need to make sure you have ssh keys setup between the nodes with the hostuser being the same on each node.  There is a simple process to copy files between servers as a very crude, but simple and speedy event system.   
+ 
+ 
+ You should start the app_controller on the app node.  
+ 
+ You can update the workload with the :
+ 
+ usage: config_generator.py [-h] [-n MYFILE] [-w WEBUSERS] [-r RPTUSERS] [-c CHATUSERS] [-l LONGTRANS] [-a]
+
+ optional arguments:
+   -h, --help            show this help message and exit
+   -n MYFILE, --name MYFILE
+                         the unique name of the app to use, defined in the configs
+   -w WEBUSERS, --webusers WEBUSERS
+                         # of web users
+   -r RPTUSERS, --reportusers RPTUSERS
+                         # of reporting users
+   -c CHATUSERS, --chatusers CHATUSERS
+                         # of chat users
+   -l LONGTRANS, --longtrans LONGTRANS
+                         # of long running users
+   -a, --active          database we are targeting
+ 
+ 
+ This will generate a config that is copied to the application server ( provdided you setup the default settings in the config dir)
+ 
+ 
+ On the database server, the database should already be running.  If it is then you just need to start watching for events.  
+ 
+ Events are generated with the event_generator.py script.  
+ 
+ [yonkovim@localhost bench]$ python event_generator.py --help
+ usage: event_generator.py [-h] [-n MYFILE] [-e MYEVENT]
+
+ optional arguments:
+   -h, --help            show this help message and exit
+   -n MYFILE, --name MYFILE
+                         the unique name of the app to use, defined in the configs
+   -e MYEVENT, --event MYEVENT
+                         the name of the event we want queued
+						 
+It will require one of the validated and coded events:
+
+['backup', 'vacuum', 'change_pk_to_int', 'change_pk_to_bigint', 'change_pk_to_varchar', 'change_title_idx', 'drop_title_idx', 'create_title_idx', 'create_json_table', 'change_year_idx', 'drop_year_idx', 'create_year_idx']
+
+Any other event will fail.  
+
+While all this may seem complex... once its setup, the goal is a controller or website can easily execute or change these.  for instance...
+
+clicking the red button on a controller can be mapped back to calling "python event_generator.py -n pg -e vacum"
+
+Turning a knob on a controller can be mapped to 'python config_generator.py -n pg -w 5 -c 3 -a'
+
+and the app/event scripts will handle the rest.   
+
+This setup allows us to add other events, and work with remote systems.
+
+I considered other tools for code deployment, changes, or even event systems.   These all had benefits, but unneeded features and overhead.   A simple scp of a json file works as I don't care about concurrency, consistancy, or resillience.  These nodes will be reset often, so the extra overhead ( coding, system, etc) did not seem worth it.   If someone want to explore adding kafka, pulsar, redis, etc as events/queueing I would be supportive.  
+
+
+
+
+Config File Notes:
+
+The config/startup_settings.json is the file that will contain the starting point for benchmarks.  It is important that the name given matches the name of the database config files in this directory.  
+
+The config/<name>.json is the database settings file, this needs to be on all systems.  The name of the file should be defined in the name attribute in the startup_settings.  Note we should add a sync later on to push these files.  
+
