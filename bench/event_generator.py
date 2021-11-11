@@ -73,4 +73,6 @@ with open(outfile, 'w') as f:
     f.write(json_object)
 
 os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost'] + ':' + settings['event_dir'] )
+logging.debug('Command Running: %s', 'scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost'] + ':' + settings['event_dir'] )
+
 os.system('rm '+ outfile)
