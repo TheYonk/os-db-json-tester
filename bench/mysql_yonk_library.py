@@ -575,7 +575,6 @@ def run_vacuum(config):
        print("problem with Update")
        print("Something went wrong: {}".format(err))              
        print(update, search_id)
-     exit()
      
 def make_copy_of_table (config):
      query = "DROP TABLE IF EXISTS copy_of_json_table"
@@ -587,7 +586,6 @@ def make_copy_of_table (config):
      query = "insert into copy_of_json_table (json_column) select json_column from movies_json_generated"
      x = query_db_new_connect(config, query, (), 0)
      
-     exit()
 
 def refresh_all_mat_views (config):
     
@@ -595,7 +593,6 @@ def refresh_all_mat_views (config):
     x = func_refreshed_materialized_view_votes(config)
     x = func_create_materialized_view_movies_by_year(config)
     x = func_refreshed_materialized_view_movies_by_year(config)
-    exit()
     
     
 def func_pk_bigint (config) :
