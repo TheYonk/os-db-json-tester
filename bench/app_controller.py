@@ -110,17 +110,16 @@ def spawn_app_nodes(count,wid):
             process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],activelist[wid]), daemon=True)
             process.start()
             activelist[wid][process.pid]=1
-            logging.debug('Started %s Workload as Pid %s', worker_desc[wid], process.pid)
+            logging.info('Started %s Workload as Pid %s', worker_desc[wid], process.pid)
             thread_list[wid].append(process)
-            logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
+            logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
      if count < 0:
       for x in range(abs(count)):
           if (len(activelist[wid].keys()))> 0:
-              logging.debug('%s Thread, trying to stop Pid %s', worker_desc[wid], process.pid)
               process = thread_list[wid].pop()
               activelist[wid][process.pid]=0
-              logging.debug('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
-              logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
+              logging.info('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
+              logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
      os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )
     
