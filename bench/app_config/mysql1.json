@@ -6,7 +6,7 @@
     "username": "movie_json_user",
     "password": "Ch@nge_me_1st",
     "database": "movie_json_test",
-    "bench_active": 1,
+    "bench_active": 0,
     "type": "mysql",
     "website_workload": 5,
     "reporting_workload": 0,

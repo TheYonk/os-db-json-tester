@@ -115,7 +115,7 @@ def spawn_app_nodes(count,wid):
             logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
      if count < 0:
       for x in range(abs(count)):
-          if (activelist[wid].count())> 0:
+          if (activelist[wid].Count())> 0:
               logging.debug('%s Thread, trying to stop Pid %s', worker_desc[wid], process.pid)
               process = thread_list[wid].pop()
               activelist[wid][process.pid]=0
