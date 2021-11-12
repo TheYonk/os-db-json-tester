@@ -13,7 +13,7 @@ import os
 import time
 import sys
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
@@ -115,7 +115,7 @@ def spawn_app_nodes(count,wid):
             logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
      if count < 0:
       for x in range(abs(count)):
-          if (activelist[wid].Count())> 0:
+          if (len(activelist[wid].keys()))> 0:
               logging.debug('%s Thread, trying to stop Pid %s', worker_desc[wid], process.pid)
               process = thread_list[wid].pop()
               activelist[wid][process.pid]=0
