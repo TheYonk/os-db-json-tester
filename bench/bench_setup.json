@@ -15,7 +15,14 @@
 			  	"change_year_idx" : "func_create_drop_year_index",
 			  	"drop_year_idx" : "func_drop_year_index",
 			  	"create_year_idx" : "func_create_year_index",
-				"refresh_mat_view" : "refresh_all_mat_views"			  		
+				"refresh_mat_view" : "refresh_all_mat_views",
+				"drop_actor_year_idx" : "func_drop_actor_year_index",	
+				"add_actor_year_idx" :	"func_add_actor_year_index",
+				"change_actor_year_idx" :	"func_change_actor_year_index",
+				"deploy_v1" :	"func_change_v1",
+				"deploy_v2" :	"func_change_v2",
+				"deploy_v3" :	"func_change_v3"
+						  		
 			}
 		},	
 "mysql" :	
@@ -34,7 +41,13 @@
    			  	"change_year_idx" : "func_create_drop_year_index",
    			  	"drop_year_idx" : "func_drop_year_index",
    			  	"create_year_idx" : "func_create_year_index",
-				"refresh_mat_view" : "refresh_all_mat_views"			  					  		
+				"refresh_mat_view" : "refresh_all_mat_views",
+				"drop_actor_year_idx" : "func_drop_actor_year_index",	
+				"add_actor_year_idx" :	"func_add_actor_year_index",
+				"change_actor_year_idx" :	"func_change_actor_year_index",
+				"deploy_v1" :	"func_change_v1",
+				"deploy_v2" :	"func_change_v2",
+				"deploy_v3" :	"func_change_v3"			  					  		
    			}
    		}		
 	

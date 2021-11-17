@@ -126,3 +126,4 @@ The config/startup_settings.json is the file that will contain the starting poin
 
 The config/<name>.json is the database settings file, this needs to be on all systems.  The name of the file should be defined in the name attribute in the startup_settings.  Note we should add a sync later on to push these files.  
 
+
