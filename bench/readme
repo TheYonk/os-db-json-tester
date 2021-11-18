@@ -20,6 +20,16 @@ Note you must have the JSON data for the internet movie database public data set
 
  wget https://download.openmmlab.com/datasets/movienet/meta.v1.zip )
  
+ Note:  there seems to be intermitten issues with this link....   you can check the following website:
+ 
+ http://movienet.site/
+ 
+ for the current download links as of 11/17:
+ 
+ https://openmmlab.oss-cn-hangzhou.aliyuncs.com/datasets/movienet/meta.v1.zip
+ 
+ 
+ 
  Then unpack meta.v1.zip into the meta/ directory
  
  You will need to clone the project off github to each node ( App, controller, and Database )
