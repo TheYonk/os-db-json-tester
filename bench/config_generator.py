@@ -59,4 +59,6 @@ for settings in settings_full['databases']:
     outfile = './tmp/'+ args.myfile + str(settings['appnode']) + '.json'
     with open(outfile, 'w') as f:
         f.write(json_object)
-        os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['host'] + ':' + settings['config_dir'] )
+    t = 'scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['host'] + ':' + settings['config_dir']
+    os.system(t)
+    loggin.info(t)
