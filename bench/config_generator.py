@@ -61,4 +61,4 @@ for settings in settings_full['databases']:
         f.write(json_object)
     t = 'scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['host'] + ':' + settings['config_dir']
     os.system(t)
-    loggin.info(t)
+    logging.info(t)
