@@ -10,6 +10,7 @@
    "base_dir" : ".~/data/bench/",
    "appnode" : 1,
    "dbhost" : "127.0.0.1",
+   "dbhost_shell" : "127.0.0.1",
    "dbusername" : "movie_json_user",
    "dbpassword" : "Ch@nge_me_1st",
    "database" : "movie_json_test", 
