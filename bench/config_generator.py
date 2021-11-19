@@ -20,23 +20,23 @@ parser.add_argument('-w', '--webusers', dest='webusers', type=int, default=0, he
 parser.add_argument('-r', '--reportusers', dest='rptusers', type=int, default=0, help='# of reporting users')
 parser.add_argument('-c', '--chatusers', dest='chatusers', type=int, default=0, help='# of chat users')
 parser.add_argument('-l', '--longtrans', dest='longtrans', type=int, default=0, help='# of long running users')
+parser.add_argument('-ro', '--readonly', dest='readonly', type=int, default=0, help='# of long running users')
 parser.add_argument('-a', '--active', dest='active', action="store_true", default=0, help='database we are targeting')
 
 args = parser.parse_args()
 print(args)
 
 with open(config_dir+args.myfile+'.json', "r") as read_file:
-     settings = json.load(read_file)
+     settings_full = json.load(read_file)
 
-#print(settings)     
 
 if args.active:
   bench_active = 1
 else: 
   bench_active = 0
   
-
-new_config = {
+for settings in settings_full['databases']:
+    new_config = {
                 "name" : args.myfile,
                 "desc" : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
              	"appnode" : settings['appnode'],	
@@ -50,13 +50,13 @@ new_config = {
                  "reporting_workload" : args.rptusers,
                  "comments_workload" : args.chatusers,
                  "longtrans_workload" : args.longtrans,
+                 "readonly_workload" : args.readonly,
                  "title_idx" : 1,
              	 "year_idx" : 1
              }
      
-json_object = json.dumps(new_config, indent = 4) 
-outfile = './tmp/'+ args.myfile + str(settings['appnode']) + '.json'
-with open(outfile, 'w') as f:
-    f.write(json_object)
-
-os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['host'] + ':' + settings['config_dir'] )
+    json_object = json.dumps(new_config, indent = 4) 
+    outfile = './tmp/'+ args.myfile + str(settings['appnode']) + '.json'
+    with open(outfile, 'w') as f:
+        f.write(json_object)
+        os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['host'] + ':' + settings['config_dir'] )

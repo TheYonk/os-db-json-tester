@@ -46,25 +46,29 @@ Note you must have the JSON data for the internet movie database public data set
  
  Here is an example of the pg.json:
  
- {
-    "default_workload" : 2,
-    "default_reporting" : 0,
-    "default_comments" : 1,
-    "default_longtrans" : 0,
-    "host" : "127.0.0.1",
-    "hostuser" : "yonkovim",
-    "config_dir" : "./data/bench/app_config/",
-    "event_dir" : "./data/bench/events/",
-    "appnode" : 1,
-    "dbhost" : "127.0.0.1",
-    "dbusername" : "movie_json_user",
-    "dbpassword" : "Change_me_1st!",
-    "database" : "movie_json_test",
-    "dbtype" : "postgresql"
- }
+{
+   "databases" : [{ 
+   "default_workload" : 2,
+   "default_reporting" : 0,
+   "default_comments" : 1,
+   "default_longtrans" : 0,
+   "host" : "127.0.0.1",
+   "hostuser" : "yonkovim",
+   "config_dir" : "~/data/bench/app_config/",
+   "event_dir" : "~/data/bench/events/",
+   "base_dir" : ".~/data/bench/",
+   "appnode" : 1,
+   "dbhost" : "127.0.0.1",
+   "dbhost_shell" : "127.0.0.1",
+   "dbusername" : "movie_json_user",
+   "dbpassword" : "Change_me_1st!",
+   "database" : "movie_json_test", 
+   "dbtype" : "postgresql"
+   }]
+}
  
  
- This will be used by other scripts to do the heavy lifting.  
+ This will be used by other scripts to do the heavy lifting.  Note this is an array, you can send the exact same workload, config changes, and events to multiple servers.  In order to do this it is recommended that you change the appnode variable for each entry to avoid conflict.  If you do this you can have two servers receive the json config files.  Note the app-controller config on each server will be named <database><appnode>.json... so the first entry would be mysql1.json, the second mysql2.json.  You would need to start and "app-controller.py" for each of the configs.   
  
  You can create multiple apps if you like, the name of the file needs to change, and you should use a different database... adjust and play as you want.  For the demo I recommend and have tested extensively only with a 1 to one.  
  
@@ -72,6 +76,9 @@ Note you must have the JSON data for the internet movie database public data set
  
  
  You should start the app_controller on the app node.  
+ 
+ i.e.  nohup python app_controller.py -f app_config/pg1.json > logs/pg.log 2>&1 &
+
  
  You can update the workload with the :
  

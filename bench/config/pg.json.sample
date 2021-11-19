@@ -1,4 +1,5 @@
 {
+   "databases" : [{ 
    "default_workload" : 2,
    "default_reporting" : 0,
    "default_comments" : 1,
@@ -15,4 +16,5 @@
    "dbpassword" : "Change_me_1st!",
    "database" : "movie_json_test", 
    "dbtype" : "postgresql"
+   }]
 }

@@ -35,7 +35,7 @@ args = parser.parse_args()
 #print(args)
 
 with open(config_dir+args.myfile+'.json', "r") as read_file:
-     settings = json.load(read_file)
+     settings_full = json.load(read_file)
 
 logging.info('Event %s requested, starting validation', args.myevent)
 
@@ -46,16 +46,18 @@ with open('bench_setup.json', "r") as setup_file:
     except: 
         logging.error('found %s does not contain a valid Json schema', setup_file )            
         valid = 0
+        
+for settings in settings_full['databases']:
 
-if args.myevent in setup[settings['dbtype']]['events'].keys():
-    logging.info('Event valid, sending request')
-else: 	
-    logging.error('Event is not valid, sending request')
-    logging.error('Valid Events for this system are: %s ', setup[settings['dbtype']]['events'].keys())
-    exit();
+    if args.myevent in setup[settings['dbtype']]['events'].keys():
+        logging.info('Event valid, sending request')
+    else: 	
+        logging.error('Event is not valid, sending request')
+        logging.error('Valid Events for this system are: %s ', setup[settings['dbtype']]['events'].keys())
+        exit();
     
     
-new_event = {
+    new_event = {
                 'name' : args.myfile,
                 'desc' : settings['dbtype'] + ' Movie Database Test for: ' + args.myfile,
              	"event" : args.myevent,	
@@ -66,13 +68,12 @@ new_event = {
              	"database" : settings['database'],	
              }
 
-mytime = int(time.time())     
-json_object = json.dumps(new_event, indent = 4) 
-outfile = './tmp/'+ args.myfile + '.' + args.myevent + '.' + str(mytime) + '.json'
-with open(outfile, 'w') as f:
-    f.write(json_object)
+    mytime = int(time.time())     
+    json_object = json.dumps(new_event, indent = 4) 
+    outfile = './tmp/'+ args.myfile + '.' + args.myevent + '.' + str(mytime) + '.json'
+    with open(outfile, 'w') as f:
+        f.write(json_object)
 
-os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost_shell'] + ':' + settings['event_dir'] )
-logging.debug('Command Running: %s', 'scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost_shell'] + ':' + settings['event_dir'] )
-
-os.system('rm '+ outfile)
+    os.system('scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost_shell'] + ':' + settings['event_dir'] )
+    logging.debug('Command Running: %s', 'scp '+ outfile + ' ' + settings['hostuser']+ '@' + settings['dbhost_shell'] + ':' + settings['event_dir'] )
+    os.system('rm '+ outfile)
