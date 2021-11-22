@@ -298,7 +298,7 @@ def func_create_year_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
         print('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year"
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
            print('creating index on Year')
@@ -312,7 +312,7 @@ def func_drop_year_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
         print('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year"
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
            print('Index on Year does not exist')
@@ -326,7 +326,7 @@ def func_add_actor_year_index (config) :
          val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
          print('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
-         drop_index = "drop index actor_name_idx"
+         drop_index = "drop index actor_name_idx on movies_normalized_actors"
         
          if val[0][0] == 0:
            print('creating index on actor name')
@@ -340,7 +340,7 @@ def func_drop_actor_year_index (config) :
          val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
          print('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
-         drop_index = "drop index actor_name_idx"
+         drop_index = "drop index actor_name_idx on movies_normalized_actors"
         
          if val[0][0] == 0:
             print('Index on Actor Name does not exist')
