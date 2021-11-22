@@ -321,7 +321,34 @@ def func_drop_year_index (config) :
            print('dropping index on Year') 
            x = query_db_new_connect(config, drop_index,(),0)
         return x   
+
+def func_add_actor_year_index (config) :  
+         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
+         print('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx"
         
+         if val[0][0] == 0:
+           print('creating index on actor name')
+           x = query_db_new_connect(config, create_index,(),0)
+         else :
+           print('Actor Index already exsits') 
+           x = 0
+         return x
+         
+def func_drop_actor_year_index (config) :
+         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
+         print('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx"
+        
+         if val[0][0] == 0:
+            print('Index on Actor Name does not exist')
+            x = 0
+         else :
+            print('dropping index on Actor Name') 
+            x = query_db_new_connect(config, drop_index,(),0)
+         return x
                 
 def func_find_index (config, table_name, index_name) :        
         findIdx = "select count(*) from information_schema.statistics where table_name = %s and index_name = %s;";        
