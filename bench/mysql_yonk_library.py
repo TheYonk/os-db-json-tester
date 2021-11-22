@@ -318,7 +318,7 @@ def func_drop_year_index (config) :
            print('Index on Year does not exist')
            x = 0
         else :
-           print('dropping index on Year') 
+           print('dropping index on Year : %s', drop_index) 
            x = query_db_new_connect(config, drop_index,(),0)
         return x   
 
