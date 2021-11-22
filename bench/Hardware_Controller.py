@@ -1,25 +1,42 @@
 import json 
 import argparse
-import asyncio
-import pg_yonk_library
-import mysql_yonk_library
+#import asyncio
+#import pg_yonk_library
+#import mysql_yonk_library
 import evdev
-import multiprocessing
-from multiprocessing import Manager
+#import multiprocessing
+#from multiprocessing import Manager
 import signal 
 import logging
 import errno
 import os
 import time
 import sys
+import serial
 
+mydatabase = 'off'
+#to add to/use a serial device you need to add yourself to the dial out group! in linux
+#i.e.  sudo usermod -a -G dialout user
 
+import serial.tools.list_ports
+
+def print_ports():
+  ports = list(serial.tools.list_ports.comports())
+  for p in ports:
+    print(p)
+    
 logging.basicConfig(level=logging.DEBUG)
 config_dir = './config/'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-i', '--interface', dest='interface', type=str, default="controller", help='the interface to use, either controller for HID, or serial for Serial interface')
 parser.add_argument('-e', '--eventfile', dest='eventfile', type=str, default="", help='the name of the hid event')
+parser.add_argument('-c', '--comport', dest='comport', type=str, default="", help='the name of the com port')
+parser.add_argument('-mw', '--max_web', dest='max_web', type=int, default="30", help='max threads for web workload')
+parser.add_argument('-mr', '--max_report', dest='max_report', type=int, default="15", help='max threads for reporting workload')
+parser.add_argument('-mc', '--max_chat', dest='max_chat', type=int, default="30", help='max threads for chat workload')
+parser.add_argument('-ml', '--max_long', dest='max_long', type=int, default="10", help='max threads for long workload')
+
 args = parser.parse_args()
 
 def print_devices():
@@ -43,6 +60,23 @@ if args.interface == 'controller':
        logging.error("failed to connect to device: %s",args.eventfile)
        print_devices()
        exit()
+
+if args.interface == 'serial':
+   try :
+      arduino = serial.Serial(port=args.comport, baudrate=19200, timeout=.5)
+      arduino.setDTR(False)
+      x = arduino.readline().decode().strip()
+      time.sleep(1)
+      arduino.flushInput()
+      arduino.setDTR(True)
+      
+   except Exception as e:
+      logging.error("Missing Valid Com Port:")
+      logging.error("error: %s", e)
+      z = sys.exc_info()[0]
+      logging.error("systems: %s",z )
+      print_ports()
+      exit()
 
 # event 288 is a tough one, it is currently set here to match the name in the config files...
 
@@ -104,15 +138,7 @@ except Exception as e:
       logging.error("failed to reaf file: %s",myfile)
 
 
-logging.debug("Active Keys: %s", dev.active_keys())
-logging.debug("Active Keys: %s", dev)
-    
-if 288 in dev.active_keys():
-    mydatabase = event_code_lookup[288]['on']
-    print('Setting up PG')
-else:
-    mydatabase = event_code_lookup[288]['off']
-    print('Setting up MySQL')
+
 
 # hardcoding 288 as a the DB selector for now... should be better way in the future...
 
@@ -146,7 +172,8 @@ def workload_change(x,name) :
     if x == "chat_0" or settings['databases'][name]['comments_workload'] <0:
         settings['databases'][name]['comments_workload'] = 0
     if x == "long_0" or settings['databases'][name]['longtrans_workload'] <0:
-        settings['databases'][name]['longtrans_workload'] = 0               
+        settings['databases'][name]['longtrans_workload'] = 0  
+                     
 
 def build_config_command(mydatabase):
     if settings['databases'][mydatabase]['bench_active'] == 1:
@@ -159,9 +186,20 @@ def build_config_command(mydatabase):
 def reset():
      for x in settings['databases'].keys():
          settings['databases'][x]['bench_active'] = 0
-     
-try:      
- for event in dev.read_loop():
+
+         
+if args.interface == 'controller': 
+ logging.debug("Active Keys: %s", dev.active_keys())
+ logging.debug("Active Keys: %s", dev)
+    
+ if 288 in dev.active_keys():
+        mydatabase = event_code_lookup[288]['on']
+        print('Setting up PG')
+ else:
+        mydatabase = event_code_lookup[288]['off']
+        print('Setting up MySQL')
+ try:      
+  for event in dev.read_loop():
       if event.type == 1:
          if event.value == 1:
             logging.debug("Event Type: %s , Event Code: %s , event Value: %s , active keys: %s", event.type, event.code, event.value, dev.active_keys()) 
@@ -192,11 +230,77 @@ try:
               if event.code == 288:
                  mydatabase = event_code_lookup[288]['off']
              
- dev.close()
- exit()    
+  dev.close()
+  exit()    
 
-
-except KeyboardInterrupt:
+ except KeyboardInterrupt:
+    # quit
+    print('Starting Shutdown!')
+    dev.close()
+    print('waiting 5 seconds to shutdown!')
+    os.system('pmm-admin annotate "Full Shutdown" --tags "Benchmark, Start-Stop"')
+    time.sleep(5)
+    print('shutdown over!')
+ except Exception as e:
+      logging.error("error: %s", e)
+      z = sys.exc_info()[0]
+      logging.error("systems: %s",z )
+      logging.error("failed to reaf file: %s",myfile)
+    
+if args.interface == 'serial':
+ try:      
+     time.sleep(10)
+     arduino.flushInput()
+     while (True):
+         x = arduino.readline().decode().strip()
+         #decoded_bytes = float(x[0:len(x)-2].decode("utf-8"))
+         if(x != ""):
+             #print(x)
+             mystuff = x.split(",")
+             #logging.debug("Recieved: %s", mystuff)
+             logging.debug("type: %s", mystuff[0])
+             logging.debug("command: %s", mystuff[2])
+             if (mystuff[0]=='type'):
+                 mydatabase = mystuff[2]
+             if (mystuff[0]=='reset'):
+                 mydatabase = 'off'            
+             if mydatabase != 'off' and mydatabase != 'mongodb':
+               if (mystuff[0]=='event'):
+                 if ( mystuff[2] != 'Stop_All' ) :
+                     t = 'python3 event_generator.py -n '+ mydatabase +' -e ' + mystuff[2]
+                     logging.debug("Event Generator Command : %s", t)
+                     os.system(t)
+               if (mystuff[0]=='workload'):
+                 logging.debug("workload threads: %s", mystuff[3])
+                 if  (mystuff[2] == 'change_lock_workload'):
+                    threads = int(round(float(mystuff[3])/100 * int(args.max_long)))
+                    settings['databases'][mydatabase]['longtrans_workload'] = threads  
+                    t = build_config_command(mydatabase)
+                    logging.debug("Config Generator Command : %s", t)
+                    os.system(t);     
+                 if  (mystuff[2] == 'change_chat_workload'):
+                    threads = int(round(float(mystuff[3])/100 * int(args.max_chat))) 
+                    settings['databases'][mydatabase]['comments_workload']  = threads   
+                    t = build_config_command(mydatabase)
+                    logging.debug("Config Generator Command : %s", t)  
+                    os.system(t);       
+                 if  (mystuff[2] == 'change_reporting_workload'):
+                    threads = int(round(float(mystuff[3])/100 * int(args.max_report)))  
+                    settings['databases'][mydatabase]['reporting_workload'] = threads   
+                    t = build_config_command(mydatabase)
+                    logging.debug("Config Generator Command : %s", t)
+                    os.system(t);     
+                 if  (mystuff[2] == 'change_website_workload'):
+                    threads = int(round(float(mystuff[3])/100 * int(args.max_web)))   
+                    settings['databases'][mydatabase]['website_workload']  = threads   
+                    logging.debug("Current Settings: %s", settings['databases'][mydatabase])
+                    t = build_config_command(mydatabase)
+                    os.system(t);     
+                    logging.debug("Config Generator Command : %s", t)
+             
+         #time.sleep(1)
+         
+ except KeyboardInterrupt:
     # quit
     print('Starting Shutdown!')
     dev.close()
@@ -205,3 +309,7 @@ except KeyboardInterrupt:
     time.sleep(5)
     print('shutdown over!')
     
+ except Exception as e:
+      logging.error("error: %s", e)
+      z = sys.exc_info()[0]
+      logging.error("systems: %s",z )
