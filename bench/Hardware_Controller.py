@@ -180,7 +180,7 @@ def build_config_command(mydatabase):
        active_flag = " -a"
     else :
        active_flag = " "
-    x = 'python3 config_generator.py -n '+ mydatabase +' -w ' + str(settings['databases'][mydatabase]['website_workload'])  +' -r ' + str(settings['databases'][mydatabase]['reporting_workload']) +' -c ' + str(settings['databases'][mydatabase]['comments_workload'])  + ' -l ' + str(settings['databases'][mydatabase]['longtrans_workload']) + active_flag
+    x = 'python3 config_generator.py -n '+ mydatabase +' -w ' + str(settings['databases'][mydatabase]['website_workload'])  +' -r ' + str(settings['databases'][mydatabase]['reporting_workload']) +' -c ' + str(settings['databases'][mydatabase]['comments_workload'])  + ' -l ' + str(settings['databases'][mydatabase]['longtrans_workload']) + active_flag + ' & '
     return x
     
 def reset():
@@ -267,7 +267,7 @@ if args.interface == 'serial':
              if mydatabase != 'off' and mydatabase != 'mongodb':
                if (mystuff[0]=='event'):
                  if ( mystuff[2] != 'Stop_All' ) :
-                     t = 'python3 event_generator.py -n '+ mydatabase +' -e ' + mystuff[2]
+                     t = 'python3 event_generator.py -n '+ mydatabase +' -e ' + mystuff[2] + ' & '
                      logging.debug("Event Generator Command : %s", t)
                      os.system(t)
                if (mystuff[0]=='workload'):
