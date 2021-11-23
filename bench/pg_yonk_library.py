@@ -296,6 +296,33 @@ def func_drop_year_index (mydsn) :
            x = query_db_new_connect(mydsn, drop_index,(),0)
         return x   
         
+def func_add_actor_year_index (mydsn) :  
+         val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
+         print('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx"
+        
+         if val[0][0] == 0:
+           print('creating index on actor name')
+           x = query_db_new_connect(mydsn, create_index,(),0)
+         else :
+           print('Actor Index already exsits') 
+           x = 0
+         return x
+         
+def func_drop_actor_year_index (mydsn) :
+         val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
+         print('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx"
+        
+         if val[0][0] == 0:
+            print('Index on Actor Name does not exist')
+            x = 0
+         else :
+            print('dropping index on Actor Name') 
+            x = query_db_new_connect(mydsn, drop_index,(),0)
+         return x        
                 
 def func_find_index (mydsn, table_name, index_name) :        
         findIdx = "select count(*) from  pg_class t, pg_class i, pg_index ix, pg_attribute a where  t.oid = ix.indrelid and i.oid = ix.indexrelid  and a.attrelid = t.oid  and a.attnum = ANY(ix.indkey)  and t.relkind = 'r' and t.relname like %s and i.relname=%s";        
