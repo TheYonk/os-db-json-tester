@@ -254,17 +254,17 @@ def func_create_title_index (mydsn) :
         return x   
                 
 def func_drop_title_index (mydsn) :
-        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
+        val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
         print('value: ', val)
-        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year"
+        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
+        drop_index = "drop index idx_nmm_title"
         
         if val[0][0] == 0:
-           logging.debug('Index on Year, does not exist')
+           logging.debug('Index on title, does not exist')
            x = 0
            #x = query_db_new_connect(mydsn, create_index,(),0)
         else :
-           logging.debug('dropping index on Year') 
+           logging.debug('dropping index on title') 
            x = query_db_new_connect(mydsn, drop_index,(),0)
         return x   
          
