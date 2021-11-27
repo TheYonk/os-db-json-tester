@@ -304,11 +304,10 @@ if args.interface == 'serial':
     # quit
     print('Starting Shutdown!')
     
-    dev.close()
     if args.interface == 'serial': 
-       arduino.close()
+       arduino.close();
     else :
-        dev.close()
+        dev.close();
     print('waiting 5 seconds to shutdown!')
     os.system('pmm-admin annotate "Full Shutdown" --tags "Benchmark, Start-Stop"')
     time.sleep(5)

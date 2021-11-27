@@ -173,7 +173,85 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     print("Ended at..." + str( time.perf_counter()))
     del activelist1[os.getpid()]
     exit()
+    
+def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    runme = 1
+    
+    find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
+    find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
+    find_movies_by_fuzzy_actor = "select imdb_id, title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name like %s"
+    simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+    simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )"
+    simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"    
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while runme == 1 :         
+         current_time = time.perf_counter() - start_time    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
          
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+     
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+
+         myid = x[0][0]
+         
+         x = func_find_movie_comments (my_query,parm1,myid)
+         
+         vote = func_generate_vote()
+         #print(str(vote))
+         comment = func_generate_comment(letters,20,50)
+         
+         y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
+         y = func_update_vote_movie(my_query,parm1,myid, vote['upvote'], vote['downvote'])
+         
+         time.sleep(sleep_timer)
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_movie_comments (my_query,parm1,x[0][0])
+         
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
+         
+         vote = func_generate_vote()
+            
+         x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
+         runme = 2
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    print("Ending Loop....")
+    print("Started at..." + str( start_time))
+    print("Ended at..." + str( time.perf_counter()))
+    
+             
 def func_find_movie_by_actor (qry_func,parm1,actor_name) :
         find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
         x = qry_func(parm1, find_movies_by_actor,actor_name,1)
