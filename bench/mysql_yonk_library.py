@@ -6,6 +6,7 @@ import logging
 import mysql.connector
 import string
 import os
+import sys
 
 config = {
   'user': 'movie_json_user',
