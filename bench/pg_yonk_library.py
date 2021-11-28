@@ -470,7 +470,13 @@ def func_rpt_movies_for_actor_fuzzy(qry_func,parm1,actor) :
 def func_rpt_movies_for_actor_year(qry_func,parm1,actor,year1,year2) :
          #print('actor:', str(actor))
          actor_movie_count_by_year_range = "select actor_name, year, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and year between %s and %s group by year, actor_name"
-         x = qry_func(parm1, actor_movie_count_by_year_range,(year1,year2),1)
+         try: 
+             x = qry_func(parm1, actor_movie_count_by_year_range,(year1,year2),1)
+         except Exception as e:
+             x = []
+             logging.error("error: %s", e)
+             z = sys.exc_info()[0]
+             logging.error("systems: %s",z )
          return x           
 
 def func_rpt_movies_per_country_year(qry_func,parm1,year1,year2) :
