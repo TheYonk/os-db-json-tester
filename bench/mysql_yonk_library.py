@@ -994,3 +994,118 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
     print("Ended at..." + str( time.perf_counter()))
     del activelist4[os.getpid()]
     exit()
+
+def func_load_voting_count_hisory(config) :
+               load_etl = "insert into voting_count_history select ai_myid, now(), title, imdb_id, comment_count, max_rate, avg_rate, upvotes, downvotes from view_voting_counts"
+               logging.info('executing load of count history') 
+               try:
+                  x = query_db_new_connect(config, load_etl,(),0)
+                  logging.info('finishing count history') 
+                  return x
+               except:
+                  logging.error("error loading voting_count_history")
+                  return -1
+                  
+def func_find_actors_and_characters_by_title (qry_func,parm1,title_name) :
+        find_movies_by_title = "select title, imdb_rating, actor_name, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and title =%s"
+        x = qry_func(parm1, find_movies_by_title,title_name,1)
+        return x       
+        
+def func_find_movies_dtls_country_year(qry_func,parm1,year1,year2) :
+          country_list = [ 'Mexico', 'Canada', 'France', 'USA', 'China', 'Ireland', 'Netherlands', 'UK', 'Germany']
+          mycountry = random.choice(country_list)
+          find_country_dtls_year = "Select title, imdb_rating from movies_normalized_meta where country = %s and year > %s and year < %s order by imdb_rating desc limit 100"
+          x = qry_func(parm1, find_country_dtls_year,(mycountry,year1,year2),1)
+          return x     
+          
+def func_check_comment_rates_last_week(qry_func,parm1,title_name) :
+   find_count_changes = "select upvotes, downvotes, comment_count, avg_rate from voting_count_history where title = %s and store_time > now() - interval 7 day order by store_time desc"
+   x = qry_func(parm1, find_count_changes,title_name,1)
+   return x
+   
+def func_check_comment_rates_last_week_actor(qry_func,parm1,actor_name) :
+   find_count_changes = "select actor_name, count(distinct title), sum(upvotes), sum(downvotes), sum(comment_count), avg(avg_rate) from voting_count_history a,  movies_normalized_cast b,  movies_normalized_actors c  where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name = %s and store_time > now() - interval 7 day group by actor_name, store_time order by store_time desc" 
+   x = qry_func(parm1, find_count_changes,actor_name,1)
+   return x
+   
+   
+def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
+    #testing out stump an expert workload...
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    runme = 1
+    
+    find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
+    find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
+    find_movies_by_fuzzy_actor = "select imdb_id, title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name like %s"
+    simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+    simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )"
+    simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"    
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = mysql.connector.connect(**config) 
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = mysql.connector.connect(**config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while runme == 1 :         
+         current_time = time.perf_counter() - start_time    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = mysql.connector.connect(**config)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
+     
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         myid = x[0][0]
+         
+         x = func_find_movie_comments (my_query,parm1,myid)
+         
+         vote = func_generate_vote()
+         #print(str(vote))
+         comment = func_generate_comment(letters,20,50)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 5
+         
+         
+         y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
+         y = func_update_vote_movie(my_query,parm1,myid, vote['upvote'], vote['downvote'])
+         
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_movie_comments (my_query,parm1,x[0][0])
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
+         vote = func_generate_vote()
+         x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
+         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
+         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         
+         runme = 2
+    if not create_new_connection_per_qry :
+        parm1.commit()
