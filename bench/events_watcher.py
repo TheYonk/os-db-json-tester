@@ -65,9 +65,15 @@ while True:
     logging.debug('Found the following files:  %s', files)        
     #if (myfile.path.endswith(".json")):
     #    logging.info('found %s : starting validation', myfile.path )
-    with open(myfile, "r") as read_file:
-        data = json.load(read_file)
-        
+    try :
+       with open(myfile, "r") as read_file:
+          data = json.load(read_file)
+    except Exception as e:
+       logging.error("error: %s", e)
+       z = sys.exc_info()[0]
+       logging.error("systems: %s",z )
+       os.rename(myfile,myfile+'.failed')
+           
     try:    
        tag = data['name']+'-'+data['host']
        logging.debug('checking %s', myfile ) 
