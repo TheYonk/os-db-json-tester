@@ -1,4 +1,5 @@
-
+drop database if exists movie_json_test;
+create database movie_json_test;
 
 create user movie_json_user with password 'Change_me_1st!';
 GRANT all privileges on database movie_json_test to movie_json_user;  

@@ -63,7 +63,7 @@ if args.interface == 'controller':
 
 if args.interface == 'serial':
    try :
-      arduino = serial.Serial(port=args.comport, baudrate=19200, timeout=.5)
+      arduino = serial.Serial(port=args.comport, baudrate=115200, timeout=.5)
       arduino.setDTR(False)
       x = arduino.readline().decode().strip()
       time.sleep(1)

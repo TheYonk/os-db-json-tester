@@ -31,7 +31,7 @@
    	        {
    	          	"backup" : "func_pg_backup",
    			  	"vacuum" : "run_vacuum",
-   			  	"change_pk_to_int" : "func_pk_in",
+   			  	"change_pk_to_int" : "func_pk_int",
    			  	"change_pk_to_bigint" : "func_pk_bigint",
    			  	"change_pk_to_varchar" : "func_pk_varchar",
    			  	"change_title_idx" : "func_create_drop_title_index",
