@@ -13,14 +13,20 @@ import os
 import time
 import sys
 
-logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
 parser.add_argument('-np', '--no-pmm', dest='nopmm',action="store_true", default=0, help='skip-pmm annotations')
+parser.add_argument('-v', '--erbose', dest='verbose',action="store_true", default=0, help='verbose output, debug mode')
 
 args = parser.parse_args()
 print(args)
+
+if args.verbose:
+   logging.basicConfig(level=logging.DEBUG)
+else: 
+   logging.basicConfig(level=logging.INFO)
+      
 
 knobcounter = [0,0,0,0]
 default_values = dict()
@@ -49,7 +55,7 @@ except:
 
 tag = settings['name']+str(settings['appnode'])+'-'+settings['host']
 
-logging.info('read file %s, found the following settings: %s', args.myfile, settings)
+logging.debug('read file %s, found the following settings: %s', args.myfile, settings)
 
 MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host']
 
@@ -63,6 +69,7 @@ config = {
 
 def reload_config(myfile):
     #function to check and reload the config file
+    logging.debug("Inside Reload Config")
     try:
        with open(myfile, "r") as read_file:
          settings = json.load(read_file)
@@ -73,34 +80,36 @@ def reload_config(myfile):
         return -1
         
 def start_mysql() : 
-     print('Starting MySQL')
+     logging.info("Starting MySQL")
      global chosen_lib 
      chosen_lib =  mysql_yonk_library
      global connect_string
      connect_string = config
      default_values = chosen_lib.load_db(config)
+     logging.debug("Finishing Start MySQL Func")
      return default_values
      
-def start_pg() : 
-     print('Starting PG')    
+def start_pg() :
+     logging.info("Starting PG") 
      global chosen_lib 
      chosen_lib =  pg_yonk_library
      global connect_string
      connect_string = MYDSN
      default_values = chosen_lib.load_db(connect_string)
+     logging.debug("Finishing Start MySQL Func")
      return default_values
      
 def stop_mysql() : 
-     print('Stop MySQL')
+     logging.info('Stop MySQL')
 
 def stop_pg() : 
-     print('Stop PG')   
+     logging.info('Stop PG')   
      
 def active_threads_list():
      return 'G:(' + str(len(thread_list[0])) + ') R: ('+ str(len(thread_list[1])) + ') IU: ('+ str(len(thread_list[2])) + ') LT: ('+ str(len(thread_list[3])) +') '
 
 def spawn_app_nodes(count,wid):
-    
+     logging.debug("inside spawn_app_nodes")
      worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
      worker_desc = ['General Website','Reporting','Chat','Long Transactions']
     
@@ -124,6 +133,7 @@ def spawn_app_nodes(count,wid):
      if (args.nopmm == 0) :
          os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )
+     logging.debug("Finishing call to spawn_app_nodes")
     
 def event_spawn(eventid):
     return 0
@@ -158,6 +168,7 @@ def full_stop_workload():
     
       
 if settings['type'] == 'mysql' and settings['bench_active']==1:
+        logging.debug("Setting up MySQL")
         try:
             default_values = start_mysql()
             if (args.nopmm == 0) :
@@ -169,6 +180,7 @@ if settings['type'] == 'mysql' and settings['bench_active']==1:
                
 if settings['type'] == 'postgresql' and settings['bench_active']==1:
         try:
+            logging.debug("Setting up PG")
             default_values = start_pg()
             if (args.nopmm == 0) :
                 os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
