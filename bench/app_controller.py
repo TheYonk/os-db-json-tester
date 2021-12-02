@@ -17,6 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
+parser.add_argument('-np', '--no-pmm', dest='nopmm',action="store_true", default=0, help='skip-pmm annotations')
 
 args = parser.parse_args()
 print(args)
@@ -120,7 +121,8 @@ def spawn_app_nodes(count,wid):
               activelist[wid][process.pid]=0
               logging.info('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
               logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
-     os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
+     if (args.nopmm == 0) :
+         os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )
     
 def event_spawn(eventid):
@@ -150,14 +152,16 @@ def full_stop_workload():
     for key in activelist[3]:
         activelist[3][key]=0
     thread_list[3] = []
-    os.system('pmm-admin annotate "Full Stop Benchmark" --tags "Benchmark, Stop,'+ tag +'"')
+    if (args.nopmm == 0) :
+        os.system('pmm-admin annotate "Full Stop Benchmark" --tags "Benchmark, Stop,'+ tag +'"')
     logging.info('Issued Deactivate Benchmark, Full Stop')
     
       
 if settings['type'] == 'mysql' and settings['bench_active']==1:
         try:
             default_values = start_mysql()
-            os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
+            if (args.nopmm == 0) :
+                os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
         except Exception as e:
             logging.error("error: %s", e)
             z = sys.exc_info()[0]
@@ -166,7 +170,8 @@ if settings['type'] == 'mysql' and settings['bench_active']==1:
 if settings['type'] == 'postgresql' and settings['bench_active']==1:
         try:
             default_values = start_pg()
-            os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
+            if (args.nopmm == 0) :
+                os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
         except Exception as e:
             logging.error("error: %s", e)
             z = sys.exc_info()[0]
@@ -197,14 +202,16 @@ try:
             if settings['type'] == 'mysql':
                     try:
                         default_values = start_mysql()
-                        os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
+                        if (args.nopmm == 0) :
+                            os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
                
             if settings['type'] == 'postgresql':
                     try:
                         default_values = start_pg()
-                        os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
+                        if (args.nopmm == 0) :
+                            os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
             startup_workers()
