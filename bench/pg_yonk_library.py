@@ -99,9 +99,9 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     start_time = 0
     qry = 0
     debug = 0
-    
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist1))
+    pid = os.getpid()
+    logging.info("pid: %s" , pid)
+    logging.info("Active List: %s", str(activelist1))
     
     find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
     find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
@@ -474,7 +474,7 @@ def func_rpt_movies_for_actor_year(qry_func,parm1,actor,year1,year2) :
              x = qry_func(parm1, actor_movie_count_by_year_range,(year1,year2),1)
          except Exception as e:
              x = []
-             logging.error("error: %s", e)
+             logging.error("error: %s" ,e)
              z = sys.exc_info()[0]
              logging.error("systems: %s",z )
          return x           
@@ -699,8 +699,8 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
     qry = 0
     debug = 0
     
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist2))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist2))
    
     
     if create_new_connection : 
@@ -777,8 +777,8 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     start_time = 0
     qry = 0
     debug = 0
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist3))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist3))
    
     
     if create_new_connection : 
@@ -842,8 +842,8 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     start_time = 0
     qry = 0
     debug = 0
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist4))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist4))
    
     
     if create_new_connection : 

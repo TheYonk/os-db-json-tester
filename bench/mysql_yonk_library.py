@@ -123,8 +123,8 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
     qry = 0
     debug = 0
     
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist1))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist1))
     
     find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
     find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
@@ -771,8 +771,8 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
     debug = 0
     error = 0 
     
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist2))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist2))
    
     
     if create_new_connection : 
@@ -853,8 +853,8 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     qry = 0
     debug = 0
     error = 0
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist3))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist3))
    
     
     if create_new_connection : 
@@ -932,8 +932,8 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
     qry = 0
     debug = 0
     error = 0
-    logging.info("pid: " , os.getpid())
-    logging.info("Active List: " , str(activelist4))
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist4))
    
     
     if create_new_connection : 
