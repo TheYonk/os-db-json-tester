@@ -178,7 +178,7 @@ if settings['type'] == 'mysql' and settings['bench_active']==1:
             z = sys.exc_info()[0]
             logging.error("systems: %s",z )
                
-if settings['type'] == 'postgresql' and settings['bench_active']==1:
+if (settings['type'] == 'postgresql' or settings['type'] == 'pg') and settings['bench_active']==1:
         try:
             logging.debug("Setting up PG")
             default_values = start_pg()
@@ -219,7 +219,7 @@ try:
                     except:
                         logging.error('Some Error')
                
-            if settings['type'] == 'postgresql':
+            if settings['type'] == 'postgresql' or settings['type'] == 'pg':
                     try:
                         default_values = start_pg()
                         if (args.nopmm == 0) :

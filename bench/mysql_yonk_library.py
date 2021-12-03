@@ -54,7 +54,7 @@ def load_db(config):
             list_titles.append(movie_titles);
             
         
-    print("Loading Actors...")
+    logging.info("Loading Actors...")
 
     #cursor.execute(comments_cleanup)
     #cnx.commit()
@@ -67,7 +67,7 @@ def load_db(config):
     #        list_actors.append(actor_name);
     list_actors = cursor.fetchall()
 
-    print("Loading Titles & ID's...")
+    logging.info("Loading Titles & ID's...")
 
     #cursor.execute(load_titles)
     #for (movie_titles, imdb_id, mv_year) in cursor:
@@ -101,9 +101,9 @@ def query_db_new_connect(config,sql,parms,fetch):
         else :
            cursor.execute(sql, parms)
       except mysql.connector.Error as err:
-        print("problem with general new connect_query")
-        print("Something went wrong: {}".format(err))              
-        print(sql, parms)
+        logging.info("problem with general new connect_query")
+        logging.info("Something went wrong: {}".format(err))              
+        logging.info(sql, parms)
         pass
         
       if fetch:
@@ -123,8 +123,8 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
     qry = 0
     debug = 0
     
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist1))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist1))
     
     find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
     find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
@@ -172,7 +172,7 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
          x = func_find_movie_comments (my_query,parm1,myid)
          
          vote = func_generate_vote()
-         #print(str(vote))
+         #logging.info(str(vote))
          comment = func_generate_comment(letters,20,50)
          
          y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
@@ -191,9 +191,9 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
          x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist1[os.getpid()]
     exit()
     
@@ -250,7 +250,7 @@ def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connectio
          x = func_find_movie_comments (my_query,parm1,myid)
          
          vote = func_generate_vote()
-         #print(str(vote))
+         #logging.info(str(vote))
          comment = func_generate_comment(letters,20,50)
          
          y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
@@ -270,9 +270,9 @@ def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connectio
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
 
     
              
@@ -303,9 +303,9 @@ def func_update_vote_movie (qry_func,parm1,id, upvote, downvote) :
         try:
           x = qry_func(parm1, simulate_updating_movie_record_with_vote,myparm,0)
         except mysql.connector.Error as err:
-          print("problem with long running select update on vote")
-          print("Something went wrong: {}".format(err))              
-          print(upvote, id)
+          logging.info("problem with long running select update on vote")
+          logging.info("Something went wrong: {}".format(err))              
+          logging.info(upvote, id)
 
           pass
         return x     
@@ -322,7 +322,7 @@ def func_find_movie_comments (qry_func,parm1,id ) :
 
 def func_create_drop_title_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title on movies_normalized_meta"
         
@@ -336,7 +336,7 @@ def func_create_drop_title_index (config) :
         
 def func_create_title_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title on movies_normalized_meta"
         
@@ -351,7 +351,7 @@ def func_create_title_index (config) :
 
 def func_drop_title_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title on movies_normalized_meta"
         
@@ -366,71 +366,71 @@ def func_drop_title_index (config) :
         
 def func_create_drop_year_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
-           print('creating index on Year')
+           logging.info('creating index on Year')
            x = query_db_new_connect(config, create_index,(),0)
         else :
-           print('dropping index on Year') 
+           logging.info('dropping index on Year') 
            x = query_db_new_connect(config, drop_index,(),0)
         return x    
 
 def func_create_year_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
-           print('creating index on Year')
+           logging.info('creating index on Year')
            x = query_db_new_connect(config, create_index,(),0)
         else :
-           print('Index already exsits') 
+           logging.info('Index already exsits') 
            x = 0
         return x  
           
 def func_drop_year_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year on movies_normalized_meta"
         
         if val[0][0] == 0:
-           print('Index on Year does not exist')
+           logging.info('Index on Year does not exist')
            x = 0
         else :
-           print('dropping index on Year : %s', drop_index) 
+           logging.info('dropping index on Year : %s', drop_index) 
            x = query_db_new_connect(config, drop_index,(),0)
         return x   
 
 def func_add_actor_year_index (config) :  
          val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
-         print('value: ', val)
+         logging.info('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx on movies_normalized_actors"
         
          if val[0][0] == 0:
-           print('creating index on actor name')
+           logging.info('creating index on actor name')
            x = query_db_new_connect(config, create_index,(),0)
          else :
-           print('Actor Index already exsits') 
+           logging.info('Actor Index already exsits') 
            x = 0
          return x
          
 def func_drop_actor_year_index (config) :
          val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
-         print('value: ', val)
+         logging.info('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx on movies_normalized_actors"
         
          if val[0][0] == 0:
-            print('Index on Actor Name does not exist')
+            logging.info('Index on Actor Name does not exist')
             x = 0
          else :
-            print('dropping index on Actor Name') 
+            logging.info('dropping index on Actor Name') 
             x = query_db_new_connect(config, drop_index,(),0)
          return x
                 
@@ -513,7 +513,7 @@ def func_rpt_movies_for_actor_fuzzy(qry_func,parm1,actor) :
          return x    
          
 def func_rpt_movies_for_actor_year(qry_func,parm1,actor,year1,year2) :
-         #print('actor:', str(actor))
+         #logging.info('actor:', str(actor))
          actor_movie_count_by_year_range = "select actor_name, year, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and year between %s and %s group by year, actor_name"
          try: 
              x = qry_func(parm1, actor_movie_count_by_year_range,(year1,year2),1)
@@ -566,26 +566,26 @@ def func_find_update_meta (config, sleeptime, title) :
           mycursor.execute(query, (title2,))
           x = mycursor.fetchall()
         except mysql.connector.Error as err:
-          print("problem with long running select update on meta")
-          print("Something went wrong: {}".format(err))              
-          print(update, y[0])
+          logging.info("problem with long running select update on meta")
+          logging.info("Something went wrong: {}".format(err))              
+          logging.info(update, y[0])
           pass
         except:
-          print("problem with update LT, non-mysql,func_find_update_meta 1")
-          print(update, y[0])
+          logging.info("problem with update LT, non-mysql,func_find_update_meta 1")
+          logging.info(update, y[0])
         time.sleep(sleeptime)
         y = random.choice(x)
         try:
           mycursor.execute(update, (y[0],))
           x = mycursor.fetchall()
         except mysql.connector.Error as err:
-          print("problem with long running update on meta")
-          print("Something went wrong: {}".format(err))              
-          print(update, y[0])
+          logging.info("problem with long running update on meta")
+          logging.info("Something went wrong: {}".format(err))              
+          logging.info(update, y[0])
           pass
         except:
-          print("problem with update LT, non-mysql,func_find_update_meta 2 ")
-          print(update, y[0])
+          logging.info("problem with update LT, non-mysql,func_find_update_meta 2 ")
+          logging.info(update, y[0])
           
         time.sleep(sleeptime)
         myconnect.commit()
@@ -605,34 +605,34 @@ def func_find_update_comments (config,sleeptime) :
           try:
             mycursor.execute(update, (y[0],))
           except mysql.connector.Error as err:
-            print("problem with long running update")
-            print("Something went wrong: {}".format(err))              
-            print(update, y[0])
+            logging.info("problem with long running update")
+            logging.info("Something went wrong: {}".format(err))              
+            logging.info(update, y[0])
             pass
           except:
-            print("problem with update LT, non-mysql, func_find_update_comments 1")
+            logging.info("problem with update LT, non-mysql, func_find_update_comments 1")
         if(len(x) >0):
           y = x.pop()
           try:
             mycursor.execute(update, (y[0],))
           except mysql.connector.Error as err:
-            print("problem with long running update")
-            print("Something went wrong: {}".format(err))              
-            print(update, y[0])
+            logging.info("problem with long running update")
+            logging.info("Something went wrong: {}".format(err))              
+            logging.info(update, y[0])
             pass
           except:
-            print("problem with update LT, non-mysql, func_find_update_comments 2")
+            logging.info("problem with update LT, non-mysql, func_find_update_comments 2")
         if(len(x) >0):
           y = x.pop()
           try:
             mycursor.execute(delete, (y[0],))
           except mysql.connector.Error as err:
-            print("problem with long running delete")
-            print("Something went wrong: {}".format(err))              
-            print(delete, y[0])
+            logging.info("problem with long running delete")
+            logging.info("Something went wrong: {}".format(err))              
+            logging.info(delete, y[0])
             pass
           except:
-            print("problem with update LT, non-mysql, func_find_update_comments 3")
+            logging.info("problem with update LT, non-mysql, func_find_update_comments 3")
         time.sleep(sleeptime/2)
         myconnect.commit()
         myconnect.close()
@@ -673,12 +673,12 @@ def func_delete_random_comments (config,list_ids,comments_to_remove) :
              try:
                mycursor2.execute(delete, comment_id)
              except mysql.connector.Error as err:
-               print("problem with delete")
-               print("Something went wrong: {}".format(err))              
-               print(delete, comment_id)
+               logging.info("problem with delete")
+               logging.info("Something went wrong: {}".format(err))              
+               logging.info(delete, comment_id)
                pass
              except:
-               print("problem with delete, non-mysql")
+               logging.info("problem with delete, non-mysql")
                break
                
      myconnect.commit();             
@@ -696,12 +696,12 @@ def func_update_random_comments (config,list_ids,comments_to_update) :
             try:
               mycursor.execute(update, (search_id,))
             except mysql.connector.Error as err:
-              print("problem with Update")
-              print("Something went wrong: {}".format(err))              
-              print(update, search_id)
+              logging.info("problem with Update")
+              logging.info("Something went wrong: {}".format(err))              
+              logging.info(update, search_id)
               pass
             except:
-              print("problem with Update, non-mysql")
+              logging.info("problem with Update, non-mysql")
               break
         myconnect.commit();             
         return i;
@@ -717,9 +717,9 @@ def run_vacuum(config):
        query = "optimize table movies_normalized_user_comments"
        x = mycursor.execute(query, ())
      except mysql.connector.Error as err:
-       print("problem with Update")
-       print("Something went wrong: {}".format(err))              
-       print(update, search_id)
+       logging.info("problem with Update")
+       logging.info("Something went wrong: {}".format(err))              
+       logging.info(update, search_id)
      
 def make_copy_of_table (config):
      query = "DROP TABLE IF EXISTS copy_of_json_table"
@@ -742,25 +742,25 @@ def refresh_all_mat_views (config):
     
 def func_pk_bigint (config) :
             alter_pk = "alter table movies_normalized_meta modify column ai_myid bigint AUTO_INCREMENT "
-            print('Changing PK to  bigint') 
+            logging.info('Changing PK to  bigint') 
             x = query_db_new_connect(config, alter_pk,(),0)
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
 
 def func_pk_int (config) :
             alter_pk = "alter table movies_normalized_meta modify column ai_myid int AUTO_INCREMENT"
-            print('Changing PK to  int') 
+            logging.info('Changing PK to  int') 
             x = query_db_new_connect(config, alter_pk,(),0)
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
             
 def func_pk_varchar (config) :
             alter_pk = "alter table movies_normalized_meta modify column ai_myid varchar(32) "
-            print('Changing PK to  Varchar') 
+            logging.info('Changing PK to  Varchar') 
             x = query_db_new_connect(config, alter_pk,(),0)
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
         
@@ -771,8 +771,8 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
     debug = 0
     error = 0 
     
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist2))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist2))
    
     
     if create_new_connection : 
@@ -794,7 +794,7 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
  
     while activelist2[os.getpid()] == 1 : 
          if error == 1 :
-            print('Starting Over! ', os.getpid())
+            logging.info('Starting Over! ', os.getpid())
             error = 0        
          current_time = time.perf_counter() - start_time    
          if create_new_connection : 
@@ -821,9 +821,9 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
          
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist2[os.getpid()]
     exit()
        
@@ -853,8 +853,8 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     qry = 0
     debug = 0
     error = 0
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist3))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist3))
    
     
     if create_new_connection : 
@@ -877,7 +877,7 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     while activelist3[os.getpid()] == 1 :         
          current_time = time.perf_counter() - start_time   
          if error == 1 :
-             print('Starting Over! ', os.getpid())
+             logging.info('Starting Over! ', os.getpid())
              error = 0 
          if create_new_connection : 
               parm1.commit()  
@@ -895,8 +895,8 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
            x = func_delete_random_comments(config,ai_myids,6) 
            time.sleep(sleep_timer)
          except: 
-           print("problem in the insert update delete part 1")
-           print('pid:', os.getpid())
+           logging.info("problem in the insert update delete part 1")
+           logging.info('pid:', os.getpid())
            error = 1
            pass
          
@@ -909,8 +909,8 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
             if r == 3 :
               x = func_update_random_comments(config, ai_myids, 2) 
          except: 
-           print("problem in the insert update delete part 2")
-           print('pid:', os.getpid())
+           logging.info("problem in the insert update delete part 2")
+           logging.info('pid:', os.getpid())
            error = 1
            pass
          time.sleep(sleep_timer)
@@ -918,9 +918,9 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist3[os.getpid()]
     exit()
     
@@ -932,8 +932,8 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
     qry = 0
     debug = 0
     error = 0
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist4))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist4))
    
     
     if create_new_connection : 
@@ -955,7 +955,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
  
     while activelist4[os.getpid()] == 1 :         
          if error == 1 :
-             print('Starting Over! ', os.getpid())
+             logging.info('Starting Over! ', os.getpid())
              error = 0
          current_time = time.perf_counter() - start_time    
          if create_new_connection : 
@@ -982,16 +982,16 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
            if r == 4 :
               x = func_find_update_comments (config,locktime)
          except: 
-           print("error in long running transaction")
-           print('pid:', os.getpid())
+           logging.info("error in long running transaction")
+           logging.info('pid:', os.getpid())
            error = 1
          
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist4[os.getpid()]
     exit()
 
@@ -1085,7 +1085,7 @@ def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connec
          x = func_find_movie_comments (my_query,parm1,myid)
          
          vote = func_generate_vote()
-         #print(str(vote))
+         #logging.info(str(vote))
          comment = func_generate_comment(letters,20,50)
          year1 = random.randrange(1900, 2015, 5)
          year2 =  year1 + 5

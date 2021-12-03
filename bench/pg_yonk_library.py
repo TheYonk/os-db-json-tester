@@ -42,7 +42,7 @@ def load_db(MYDSN):
             list_ids.append(imdb_id);
             movie_years[imdb_id] = mv_year
         
-    print("Loading Actors...")
+    logging.info("Loading Actors...")
 
     #cursor.execute(comments_cleanup)
     #cnx.commit()
@@ -54,7 +54,7 @@ def load_db(MYDSN):
     for actor_name in cursor:
             list_actors.append(actor_name);
 
-    print("Loading Titles & ID's...")
+    logging.info("Loading Titles & ID's...")
 
     cursor.execute(load_titles)
     for (movie_titles, imdb_id, mv_year) in cursor:
@@ -100,8 +100,8 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     qry = 0
     debug = 0
     
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist1))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist1))
     
     find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
     find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
@@ -149,7 +149,7 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
          x = func_find_movie_comments (my_query,parm1,myid)
          
          vote = func_generate_vote()
-         #print(str(vote))
+         #logging.info(str(vote))
          comment = func_generate_comment(letters,20,50)
          
          y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
@@ -168,9 +168,9 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
          x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist1[os.getpid()]
     exit()
     
@@ -227,7 +227,7 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
          x = func_find_movie_comments (my_query,parm1,myid)
          
          vote = func_generate_vote()
-         #print(str(vote))
+         #logging.info(str(vote))
          comment = func_generate_comment(letters,20,50)
          
          y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
@@ -247,9 +247,9 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     
              
 def func_find_movie_by_actor (qry_func,parm1,actor_name) :
@@ -290,21 +290,21 @@ def func_find_movie_comments (qry_func,parm1,id ) :
 
 def func_create_drop_title_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title"
         
         if val[0][0] == 0:
-           print('creating index on Title')
+           logging.info('creating index on Title')
            x = query_db_new_connect(mydsn, create_index,(),0)
         else :
-           print('dropping index on Title') 
+           logging.info('dropping index on Title') 
            x = query_db_new_connect(mydsn, drop_index,(),0)
         return x    
         
 def func_create_drop_year_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year"
         
@@ -318,7 +318,7 @@ def func_create_drop_year_index (mydsn) :
         
 def func_create_title_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title"
         
@@ -333,7 +333,7 @@ def func_create_title_index (mydsn) :
                 
 def func_drop_title_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title"
         
@@ -348,57 +348,57 @@ def func_drop_title_index (mydsn) :
          
 def func_create_year_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year"
         
         if val[0][0] == 0:
-           print('creating index on Year')
+           logging.info('creating index on Year')
            x = query_db_new_connect(mydsn, create_index,(),0)
         else :
-           print('Index already exsits') 
+           logging.info('Index already exsits') 
            x = 0
         return x  
           
 def func_drop_year_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
-        print('value: ', val)
+        logging.info('value: ', val)
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year"
         
         if val[0][0] == 0:
-           print('Index on Year does not exist')
+           logging.info('Index on Year does not exist')
            x = 0
         else :
-           print('dropping index on Year') 
+           logging.info('dropping index on Year') 
            x = query_db_new_connect(mydsn, drop_index,(),0)
         return x   
         
 def func_add_actor_year_index (mydsn) :  
          val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
-         print('value: ', val)
+         logging.info('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx"
         
          if val[0][0] == 0:
-           print('creating index on actor name')
+           logging.info('creating index on actor name')
            x = query_db_new_connect(mydsn, create_index,(),0)
          else :
-           print('Actor Index already exsits') 
+           logging.info('Actor Index already exsits') 
            x = 0
          return x
          
 def func_drop_actor_year_index (mydsn) :
          val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
-         print('value: ', val)
+         logging.info('value: ', val)
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx"
         
          if val[0][0] == 0:
-            print('Index on Actor Name does not exist')
+            logging.info('Index on Actor Name does not exist')
             x = 0
          else :
-            print('dropping index on Actor Name') 
+            logging.info('dropping index on Actor Name') 
             x = query_db_new_connect(mydsn, drop_index,(),0)
          return x        
                 
@@ -468,7 +468,7 @@ def func_rpt_movies_for_actor_fuzzy(qry_func,parm1,actor) :
          return x    
          
 def func_rpt_movies_for_actor_year(qry_func,parm1,actor,year1,year2) :
-         #print('actor:', str(actor))
+         #logging.info('actor:', str(actor))
          actor_movie_count_by_year_range = "select actor_name, year, count(*), avg(imdb_rating) from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and year between %s and %s group by year, actor_name"
          try: 
              x = qry_func(parm1, actor_movie_count_by_year_range,(year1,year2),1)
@@ -574,7 +574,7 @@ def func_delete_random_comments (MYDSN,list_ids,comments_to_remove) :
          i = i + 1
          search_id = random.choice(list_ids)
          delete = "delete from movies_normalized_user_comments where comment_id in (select comment_id from movies_normalized_user_comments where ai_myid = %s limit 3  )" 
-         #print('delete id: ',search_id)
+         #logging.info('delete id: ',search_id)
          mycursor.execute(delete, (search_id,))
      myconnect.commit();             
      return i;
@@ -645,14 +645,14 @@ def func_pk_bigint (MYDSN) :
             x = query_db_new_connect(MYDSN, cleanup,(),0)
             
             alter_pk = "alter table movies_normalized_meta alter column ai_myid type bigint using ai_myid::bigint"
-            print('Changing PK to  bigint') 
+            logging.info('Changing PK to  bigint') 
             x = query_db_new_connect(MYDSN, alter_pk,(),0)
             
             logging.debug('Rebuild Mat Views, refresh')
             
             refresh_all_mat_views(MYDSN)
             
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
 
@@ -668,13 +668,13 @@ def func_pk_int (MYDSN) :
             x = query_db_new_connect(MYDSN, cleanup,(),0)
                 
             alter_pk = "alter table movies_normalized_meta alter column ai_myid type int using ai_myid::int"
-            print('Changing PK to  int') 
+            logging.info('Changing PK to  int') 
             x = query_db_new_connect(MYDSN, alter_pk,(),0)
             
             logging.debug('Rebuild Mat Views, refresh')
             
             refresh_all_mat_views(MYDSN)
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
             
@@ -686,10 +686,10 @@ def func_pk_varchar (MYDSN) :
             x = query_db_new_connect(MYDSN, cleanup,(),0)
                 
             alter_pk = "alter table movies_normalized_meta alter column ai_myid type varchar(32) using ai_myid::varchar "
-            print('Changing PK to  Varchar') 
+            logging.info('Changing PK to  Varchar') 
             x = query_db_new_connect(MYDSN, alter_pk,(),0)
             refresh_all_mat_views(MYDSN)
-            print('done Changing PK') 
+            logging.info('done Changing PK') 
             
             return x
                     
@@ -699,8 +699,8 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
     qry = 0
     debug = 0
     
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist2))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist2))
    
     
     if create_new_connection : 
@@ -746,9 +746,9 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
          
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist2[os.getpid()]
     exit()
        
@@ -777,8 +777,8 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     start_time = 0
     qry = 0
     debug = 0
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist3))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist3))
    
     
     if create_new_connection : 
@@ -829,9 +829,9 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist3[os.getpid()]
     exit()
     
@@ -842,8 +842,8 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     start_time = 0
     qry = 0
     debug = 0
-    print("pid: " , os.getpid())
-    print("Active List: " , str(activelist4))
+    logging.info("pid: " , os.getpid())
+    logging.info("Active List: " , str(activelist4))
    
     
     if create_new_connection : 
@@ -891,8 +891,8 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    print("Ending Loop....")
-    print("Started at..." + str( start_time))
-    print("Ended at..." + str( time.perf_counter()))
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
     del activelist4[os.getpid()]
     exit()
