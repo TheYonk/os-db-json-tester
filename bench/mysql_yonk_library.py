@@ -1053,7 +1053,7 @@ def func_movies_by_director (qry_func,parm1,director) :
         return x     
            
 def func_movies_by_actor_with_many (qry_func,parm1,actor) :
-        find_movies_by_dir = "select title, actor_name, actor_character from movies_normalized_cast, movies_normalized_actors, movies_normalized_meta where movies_normalized_meta.ai_myid=movies_normalized_cast.ai_myid and movies_normalized_actors.ai_actor_id=movies_normalized_cast.ai_actor_id and ai_actor_id=%s"
+        find_movies_by_dir = "select title, actor_name, actor_character from movies_normalized_cast, movies_normalized_actors, movies_normalized_meta where movies_normalized_meta.ai_myid=movies_normalized_cast.ai_myid and movies_normalized_actors.ai_actor_id=movies_normalized_cast.ai_actor_id and movies_normalized_actors.ai_actor_id=%s"
         x = qry_func(parm1, find_movies_by_dir,actor,1)
         return x       
 
@@ -1360,7 +1360,7 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
         start_time = time.perf_counter()
  
         while myactivelist[os.getpid()] == 1 :         
-           try:
+           #try:
              if error == 1 :
                  logging.info('Starting Over! ', os.getpid())
                  error = 0
@@ -1385,10 +1385,10 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
              x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
             
          
-           except: 
-               logging.info("error in read only workload")
-               logging.info('pid:', os.getpid())
-               error = 1
+           #except: 
+           #    logging.info("error in read only workload")
+           #    logging.info('pid:', os.getpid())
+           #    error = 1
          
  
         if not create_new_connection_per_qry :
