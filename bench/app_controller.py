@@ -2,7 +2,7 @@ import json
 
 import asyncio
 import pg_yonk_library
-import mysql_yonk_library
+import lib.mysql_workload_lib
 import argparse
 import multiprocessing
 from multiprocessing import Manager
@@ -23,7 +23,7 @@ parser.add_argument('-u', '--user-function', dest='function', type=str, default=
 parser.add_argument('-n', '--number-threads', dest='threads', type=int, default=1, help='the number of desired threads')
 parser.add_argument('-t', '--time', dest='time', type=int, default=-1, help='the legnth of time to run the app controller, -1 is forever the default')
 parser.add_argument('-r', '--restart', dest='verbose',action="store_true", default=0, help='do you want to restart all threads every 60 minutes, sometimes long overnight runs run into unforseen issues')
-
+parser.add_argument('-mc', '--mysql-client', dest='myclient',type=str, default="connector", help='the mysql client driver to use, [connector,mysqlclient]')
 user_function_list = {'website_workload':'single_user_actions_v2', 'reporting_workload':'report_user_actions', 'comments_workload':'insert_update_delete','longtrans_workload':'long_transactions', 'special_workload':'single_user_actions_special_v2', 'read_only_workload':'read_only_user_actions','json_ro_workload':'read_only_user_json_actions','list_workload':'multi_row_returns'}
                        
 
@@ -52,6 +52,7 @@ if (args.myfile ==""):
 knobcounter = [0,0,0,0]
 default_values = dict()
 thread_list = []
+mysql_driver = 'connector'
 
 #thread_list1 = []
 #thread_list2 = []
@@ -61,6 +62,7 @@ thread_list = []
 activelist = []
 worker_threads = []
 wid_lookup = dict()
+
 for key in user_function_list:
     activelist.append(Manager().dict())
     worker_threads.append('chosen_lib.'+user_function_list[key])
@@ -94,8 +96,15 @@ config = {
   'password': settings['password'],
   'host': settings['host'],
   'database': settings['database'],
-  'raise_on_warnings': False
+  'raise_on_warnings': False,
+  'buffered':True
 }
+
+config_myclient = {
+  'user': settings['username'],
+  'passwd': settings['password'],
+  'host': settings['host'],
+  'db': settings['database']}
 
 def reload_config(myfile):
     #function to check and reload the config file
@@ -111,11 +120,21 @@ def reload_config(myfile):
         
 def start_mysql() : 
      logging.info("Starting MySQL")
-     global chosen_lib 
-     chosen_lib =  mysql_yonk_library
      global connect_string
-     connect_string = config
-     default_values = chosen_lib.load_db(config)
+     global chosen_lib 
+     global mysql_driver
+     if (args.myclient=='mysqlclient'):
+        chosen_lib =  lib.mysql_workload_lib
+        mysql_driver = 'mysqlclient'
+        connect_string = config_myclient
+        chosen_lib.mysql_driver = 'mysqlclient'
+        
+     else:
+        chosen_lib =  lib.mysql_workload_lib
+        mysql_driver = 'connector'
+        chosen_lib.mysql_driver = 'connector'
+        connect_string = config
+     default_values = chosen_lib.load_db(connect_string)
      logging.debug("Finishing Start MySQL Func")
      return default_values
      
@@ -145,6 +164,7 @@ def spawn_app_nodes(count,wid):
     
      global activelist
      global thread_list
+     global mysql_driver
      if count > 0:
         for x in range(count):
             process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
@@ -175,7 +195,7 @@ def spawn_special_nodes(count,wid,myfunction):
      if count > 0:
         for x in range(count):
             func='chosen_lib.'+myfunction
-            process = multiprocessing.Process(target=eval(func), args=(connect_string,1000,0,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
+            process = multiprocessing.Process(target=eval(func), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
             process.start()
             activelist[wid][process.pid]=1
             logging.info('Started %s Workload as Pid %s', myfunction, process.pid)
@@ -230,7 +250,7 @@ def full_stop_workload():
     
       
 if settings['type'] == 'mysql' and settings['bench_active']==1:
-        logging.debug("Setting up MySQL")
+        logging.debug("Setting up MySQL")                
         try:
             default_values = start_mysql()
             if (args.nopmm == 0) :
