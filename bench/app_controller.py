@@ -17,7 +17,15 @@ import sys
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
 parser.add_argument('-np', '--no-pmm', dest='nopmm',action="store_true", default=0, help='skip-pmm annotations')
-parser.add_argument('-v', '--erbose', dest='verbose',action="store_true", default=0, help='verbose output, debug mode')
+parser.add_argument('-v', '--verbose', dest='verbose',action="store_true", default=0, help='verbose output, debug mode')
+parser.add_argument('-s', '--special', dest='special',action="store_true", default=0, help='using the special flag you can use the u and n flags to exectute the user function (u) via (n) threads')
+parser.add_argument('-u', '--user-function', dest='function', type=str, default="", help='the function you want to call')
+parser.add_argument('-n', '--number-threads', dest='threads', type=int, default=1, help='the number of desired threads')
+parser.add_argument('-t', '--time', dest='time', type=int, default=-1, help='the legnth of time to run the app controller, -1 is forever the default')
+parser.add_argument('-r', '--restart', dest='verbose',action="store_true", default=0, help='do you want to restart all threads every 60 minutes, sometimes long overnight runs run into unforseen issues')
+
+user_function_list = {'website_workload':'single_user_actions_v2', 'reporting_workload':'report_user_actions', 'comments_workload':'insert_update_delete','longtrans_workload':'long_transactions', 'special_workload':'single_user_actions_special_v2', 'read_only_workload':'read_only_user_actions','json_ro_workload':'read_only_user_json_actions','list_workload':'multi_row_returns'}
+                       
 
 args = parser.parse_args()
 print(args)
@@ -26,22 +34,44 @@ if args.verbose:
    logging.basicConfig(level=logging.DEBUG)
 else: 
    logging.basicConfig(level=logging.INFO)
-      
 
+if args.special:
+   if args.function in user_function_list.keys():
+      logging.info("Setup for user function: %s", args.function)
+      logging.info("Time to run: %s", str(args.time))
+      logging.info("# of threads: %s", str(args.threads))
+   else:
+      keys = user_function_list.keys()
+      logging.error("User Function (-u) not found.  Valid functions are:  %s",keys) 
+      sys.exit()      
+
+if (args.myfile ==""):
+    logging.error("no -f specified. You need a condig file under app_config/") 
+    sys.exit()
+ 
 knobcounter = [0,0,0,0]
 default_values = dict()
-thread_list = [[],[],[],[]]
+thread_list = []
 
-thread_list1 = []
-thread_list2 = []
-thread_list3 = []
-thread_list4 = []
+#thread_list1 = []
+#thread_list2 = []
+#thread_list3 = []
+#thread_list4 = []
 
+activelist = []
+worker_threads = []
+wid_lookup = dict()
+for key in user_function_list:
+    activelist.append(Manager().dict())
+    worker_threads.append('chosen_lib.'+user_function_list[key])
+    wid_lookup[key] = len(thread_list)
+    thread_list.append([])
 activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
-activelist1 = Manager().dict()
-activelist2 = Manager().dict()
-activelist3 = Manager().dict()
-activelist4 = Manager().dict()
+print(wid_lookup)
+#activelist1 = Manager().dict()
+#activelist2 = Manager().dict()
+#activelist3 = Manager().dict()
+#activelist4 = Manager().dict()
 
 chosen_lib =  pg_yonk_library
 
@@ -110,14 +140,14 @@ def active_threads_list():
 
 def spawn_app_nodes(count,wid):
      logging.debug("inside spawn_app_nodes")
-     worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
+     #worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
      worker_desc = ['General Website','Reporting','Chat','Long Transactions']
     
      global activelist
      global thread_list
      if count > 0:
         for x in range(count):
-            process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],activelist[wid]), daemon=True)
+            process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
             process.start()
             activelist[wid][process.pid]=1
             logging.info('Started %s Workload as Pid %s', worker_desc[wid], process.pid)
@@ -134,15 +164,47 @@ def spawn_app_nodes(count,wid):
          os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )
      logging.debug("Finishing call to spawn_app_nodes")
+     
+     
+     
+def spawn_special_nodes(count,wid,myfunction):
+     logging.debug("inside spawn_special_nodes")
     
+     global activelist
+     global thread_list
+     if count > 0:
+        for x in range(count):
+            func='chosen_lib.'+myfunction
+            process = multiprocessing.Process(target=eval(func), args=(connect_string,1000,0,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
+            process.start()
+            activelist[wid][process.pid]=1
+            logging.info('Started %s Workload as Pid %s', myfunction, process.pid)
+            thread_list[wid].append(process)
+            logging.info('%s Workload at count: %s',myfunction, str(len(thread_list[wid])) )                    
+     if count < 0:
+      for x in range(abs(count)):
+          if (len(activelist[wid].keys()))> 0:
+              process = thread_list[wid].pop()
+              activelist[wid][process.pid]=0
+              logging.info('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
+              logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
+     if (args.nopmm == 0) :
+         os.system('pmm-admin annotate "' + myfunction + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
+     logging.debug('%s Workload at count: %s', myfunction, str(len(thread_list[wid])) )
+     logging.debug("Finishing call to spawn_special_nodes")
+     
+         
 def event_spawn(eventid):
     return 0
 
 def startup_workers():
-    spawn_app_nodes(settings['website_workload'],0)
-    spawn_app_nodes(settings['reporting_workload'],1)
-    spawn_app_nodes(settings['comments_workload'],2)
-    spawn_app_nodes(settings['longtrans_workload'],3)
+    if args.special:
+        spawn_special_nodes(args.threads,0,user_function_list[args.function])
+    else:
+        spawn_app_nodes(settings['website_workload'], wid_lookup['website_workload'])
+        spawn_app_nodes(settings['reporting_workload'], wid_lookup['reporting_workload'])
+        spawn_app_nodes(settings['comments_workload'], wid_lookup['comments_workload'])
+        spawn_app_nodes(settings['longtrans_workload'], wid_lookup['longtrans_workload'])
     
 def full_stop_workload():
     global activelist
@@ -193,9 +255,16 @@ if settings['bench_active']==1:
    startup_workers()
                
 last_settings = settings;
-
+start_time = time.perf_counter()
 try: 
  while True:
+    if (args.time > 0):
+        current_time=time.perf_counter()
+        if (current_time - start_time > args.time):
+            logging.info('Reached time to shutdown')
+            full_stop_workload()
+            time.sleep(10)
+            break
     try:
         new_settings = reload_config(args.myfile)
     except: 
@@ -210,37 +279,60 @@ try:
         logging.debug('new settings : %s', new_settings)
         logging.debug('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
         try:
-         if (new_settings['bench_active'] == 1 and last_settings['bench_active']==0):
-            if settings['type'] == 'mysql':
+          if args.special:
+              if settings['type'] == 'mysql':
                     try:
                         default_values = start_mysql()
+                        start_time = time.perf_counter()
                         if (args.nopmm == 0) :
                             os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
                
-            if settings['type'] == 'postgresql' or settings['type'] == 'pg':
+              if settings['type'] == 'postgresql' or settings['type'] == 'pg':
                     try:
                         default_values = start_pg()
+                        start_time = time.perf_counter()
                         if (args.nopmm == 0) :
                             os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
-            startup_workers()
-            logging.info(active_threads_list())
-         else :
-            if (new_settings['bench_active'] == 0 and last_settings['bench_active']==1):
+              startup_workers()
+              logging.info(active_threads_list())
+          else:
+           if (new_settings['bench_active'] == 1 and last_settings['bench_active']==0):
+              if settings['type'] == 'mysql':
+                    try:
+                        default_values = start_mysql()
+                        start_time = time.perf_counter()
+                        if (args.nopmm == 0) :
+                            os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
+                    except:
+                        logging.error('Some Error')
+               
+              if settings['type'] == 'postgresql' or settings['type'] == 'pg':
+                    try:
+                        default_values = start_pg()
+                        start_time = time.perf_counter()
+                        if (args.nopmm == 0) :
+                            os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
+                    except:
+                        logging.error('Some Error')
+              startup_workers()
+              logging.info(active_threads_list())
+           else :
+              if (new_settings['bench_active'] == 0 and last_settings['bench_active']==1):
                 full_stop_workload();
-            else :
+              else :
                 if (new_settings['website_workload'] - last_settings['website_workload'] != 0):
-                    spawn_app_nodes(new_settings['website_workload'] - last_settings['website_workload'],0)
+                    spawn_app_nodes(new_settings['website_workload'] - last_settings['website_workload'],wid_lookup['website_workload'])
                 if (new_settings['reporting_workload'] - last_settings['reporting_workload'] != 0):
-                    spawn_app_nodes(new_settings['reporting_workload'] - last_settings['reporting_workload'],1) 
+                    spawn_app_nodes(new_settings['reporting_workload'] - last_settings['reporting_workload'],wid_lookup['reporting_workload']) 
                 if (new_settings['comments_workload'] - last_settings['comments_workload'] != 0):
-                    spawn_app_nodes(new_settings['comments_workload'] - last_settings['comments_workload'],2)
+                    spawn_app_nodes(new_settings['comments_workload'] - last_settings['comments_workload'],wid_lookup['comments_workload'])
                 if (new_settings['longtrans_workload'] - last_settings['longtrans_workload'] != 0):
-                    spawn_app_nodes(new_settings['longtrans_workload'] - last_settings['longtrans_workload'],3)   
-         logging.info(active_threads_list())
+                    spawn_app_nodes(new_settings['longtrans_workload'] - last_settings['longtrans_workload'],wid_lookup['longtrans_workload'])   
+           logging.info(active_threads_list())
         except Exception as e:
             logging.error('unknown issue')
             logging.error("error: %s", e)

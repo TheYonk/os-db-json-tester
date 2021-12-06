@@ -24,7 +24,10 @@ def load_db(config):
     load_titles = "select title, imdb_id, year from movies_normalized_meta"
     load_directors = "select director from movies_normalized_director"
     comments_cleanup = "truncate movies_normalized_user_comments"
-
+    directors_with_50_movies = "select director from movies_normalized_director group by director having count(*) > 49"
+    actors_with_50_movies = "select ai_actor_id from movies_normalized_cast group by ai_actor_id having count(*) > 49"
+    actors_with_200_movies = "select ai_actor_id from movies_normalized_cast group by ai_actor_id having count(*) > 199"
+    
     returnval = dict()
     # actors list stored here for random searches
     list_actors=[]
@@ -44,7 +47,7 @@ def load_db(config):
     #cnx.set_session(readonly=True, autocommit=True)
     cursor = cnx.cursor()
 
-
+    logging.info("Loading Titles & ID's...")
     cursor.execute(load_ids)
     x = cursor.fetchall();
     for (ai_myid, imdb_id, mv_year, movie_titles) in x:
@@ -67,8 +70,15 @@ def load_db(config):
     #        list_actors.append(actor_name);
     list_actors = cursor.fetchall()
 
-    logging.info("Loading Titles & ID's...")
-
+    
+    logging.info("Loading Movies and Directors with Many Movies")
+    
+    cursor.execute(directors_with_50_movies)
+    list_50_directors = cursor.fetchall()
+    cursor.execute(actors_with_50_movies)
+    list_50_actors = cursor.fetchall()
+    cursor.execute(actors_with_200_movies)
+    list_200_actors = cursor.fetchall()
     #cursor.execute(load_titles)
     #for (movie_titles, imdb_id, mv_year) in cursor:
     #        list_titles.append(movie_titles);
@@ -79,6 +89,10 @@ def load_db(config):
     returnval['list_titles'] = list_titles
     returnval['list_ids'] = list_ids
     returnval['ai_myids'] = ai_myids
+    returnval['directors_with_50_movies'] = list_50_directors
+    returnval['actors_with_50_movies'] = list_50_actors
+    returnval['actors_with_200_movies'] = list_200_actors
+    
     
     return returnval
 
@@ -117,7 +131,7 @@ def new_connection(config):
     return cnx
       
       
-def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist1):
+def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1):
     current_time = 0
     start_time = 0
     qry = 0
@@ -197,7 +211,7 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
     del activelist1[os.getpid()]
     exit()
     
-def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
+def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,default_values,ai_myids):
     current_time = 0
     start_time = 0
     qry = 0
@@ -764,7 +778,7 @@ def func_pk_varchar (config) :
             
             return x
         
-def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist2):
+def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2):
     current_time = 0
     start_time = 0
     qry = 0
@@ -846,7 +860,7 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
 #debug = 0
 #qry = 0;
 
-def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist3):
+def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3):
     
     current_time = 0
     start_time = 0
@@ -925,7 +939,7 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     exit()
     
 
-def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,activelist4):
+def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4):
     
     current_time = 0
     start_time = 0
@@ -1028,7 +1042,56 @@ def func_check_comment_rates_last_week_actor(qry_func,parm1,actor_name) :
    x = qry_func(parm1, find_count_changes,actor_name,1)
    return x
    
-   
+def func_top_movies_year (qry_func,parm1,myyear) :
+        find_movies_by_years = "select year, title, imdb_rating from movies_normalized_meta where year = %s order by imdb_rating desc limit 50"
+        x = qry_func(parm1, find_movies_by_years,myyear,1)
+        return x
+        
+def func_movies_by_director (qry_func,parm1,director) :
+        find_movies_by_dir = "select title, director from movies_normalized_meta, movies_normalized_director where movies_normalized_meta.ai_myid=movies_normalized_director.ai_myid and director = %s"
+        x = qry_func(parm1, find_movies_by_dir,director,1)
+        return x     
+           
+def func_movies_by_actor_with_many (qry_func,parm1,actor) :
+        find_movies_by_dir = "select title, actor_name, actor_character from movies_normalized_cast, movies_normalized_actors, movies_normalized_meta where movies_normalized_meta.ai_myid=movies_normalized_cast.ai_myid and movies_normalized_actors.ai_actor_id=movies_normalized_cast.ai_actor_id and ai_actor_id=%s"
+        x = qry_func(parm1, find_movies_by_dir,actor,1)
+        return x       
+
+def func_top_movies_year_json (qry_func,parm1,myyear) :
+        find_movies_by_years = "select json_column from movies_json_generated where json_column->>'$.title' like '%s' order by  json_column->>'$.imdb_rating' desc limit 50"
+        x = qry_func(parm1, find_movies_by_years,myyear,1)
+        return x
+        
+def func_movies_by_director_json (qry_func,parm1,director) :
+        find_movies_by_dir = "select json_column-->'$.title', t.myname  from movies_json_generated, json_table(json_column, '$.director[*]' columns( myid varchar(20) path '$.id', myname varchar(100) path '$.name')) t where t.myname = %s"
+        x = qry_func(parm1, find_movies_by_dir,director,1)
+        return x     
+           
+def func_movies_by_actor_with_many_json (qry_func,parm1,actor) :
+        find_movies_by_dir = "select title, actor_name, actor_character from movies_normalized_cast, movies_normalized_actors, movies_normalized_meta where movies_normalized_meta.ai_myid=movies_normalized_cast.ai_myid and movies_normalized_actors.ai_actor_id=movies_normalized_cast.ai_actor_id and movies_normalized_actors.actor_name=%s"
+        x = qry_func(parm1, find_movies_by_dir,actor,1)
+        return x     
+
+def func_find_movie_by_actor_json (qry_func,parm1,actor_name) :
+        find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
+        x = qry_func(parm1, find_movies_by_actor,actor_name,1)
+        return x
+        
+def func_find_movies_by_title_json (qry_func,parm1,title_name) :
+        find_movies_by_title = "select ai_myid, imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
+        x = qry_func(parm1, find_movies_by_title,title_name,1)
+        return x
+        
+def func_find_movies_by_id_json (qry_func,parm1,id) :
+        simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+        x = qry_func(parm1, simulate_finding_a_movie_record,id,1)
+        return x       
+
+def func_find_actors_and_characters_by_title_json (qry_func,parm1,title_name) :
+        find_movies_by_title = "select title, imdb_rating, actor_name, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and title =%s"
+        x = qry_func(parm1, find_movies_by_title,title_name,1)
+        return x       
+           
 def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
     #testing out stump an expert workload...
     
@@ -1109,3 +1172,310 @@ def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connec
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
+
+
+def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = mysql.connector.connect(**config)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = mysql.connector.connect(**config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while myactivelist[os.getpid()] == 1 :         
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter() - start_time    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = mysql.connector.connect(**config)
+                
+         search_actor = random.choice(default_values['actors_with_50_movies'])
+         #print(search_actor)
+         search_director = random.choice(default_values['directors_with_50_movies'])
+         #print(search_director)
+         
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 1)
+         year2 = random.randrange(1900, 2015, 1)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year1,))
+         x = func_movies_by_director(my_query,parm1,search_director)
+         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year2,))
+         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+         
+       except: 
+           logging.info("error in read only workload")
+           logging.info('pid:', os.getpid())
+           error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+    
+def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = mysql.connector.connect(**config)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = mysql.connector.connect(**config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while myactivelist[os.getpid()] == 1 :         
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter() - start_time    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = mysql.connector.connect(**config)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         myid = x[0][0]
+         x = func_find_movie_comments (my_query,parm1,myid)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 5
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_movie_comments (my_query,parm1,x[0][0])
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
+         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
+         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         
+       except: 
+           logging.info("error in special workload")
+           logging.info('pid:', os.getpid())
+           error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+    
+    
+def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+    
+        current_time = 0
+        start_time = 0
+        qry = 0
+        debug = 0
+        error = 0
+        logging.info("pid: %s" , os.getpid())
+        logging.info("Active List: %s" , str(myactivelist))
+   
+    
+        if create_new_connection : 
+            my_query = query_db
+            parm1 = mysql.connector.connect(**config)  
+        
+        else :  
+            if create_new_connection_per_qry :
+               my_query = query_db_new_connect
+               parm1 = config
+            else : 
+               my_query = query_db
+               parm1 = mysql.connector.connect(**config)
+               parm1.commit()  
+           
+        letters = string.ascii_lowercase
+      
+        start_time = time.perf_counter()
+ 
+        while myactivelist[os.getpid()] == 1 :         
+           try:
+             if error == 1 :
+                 logging.info('Starting Over! ', os.getpid())
+                 error = 0
+             current_time = time.perf_counter() - start_time    
+             if create_new_connection : 
+                  parm1.commit()  
+                  parm1.close()
+                  my_query = query_db
+                  parm1 = mysql.connector.connect(**config)
+                
+             search_actor = random.choice(list_actors)
+             search_title = random.choice(list_tiles)
+             search_id = random.choice(list_ids)
+             year1 = random.randrange(1900, 2015, 1)
+             year2 = random.randrange(1900, 2015, 1)
+         
+
+             x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+             x = func_top_movies_year(my_query,parm1,(year1,))
+             x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
+            
+         
+           except: 
+               logging.info("error in read only workload")
+               logging.info('pid:', os.getpid())
+               error = 1
+         
+ 
+        if not create_new_connection_per_qry :
+            parm1.commit()
+        logging.info("Ending Loop....")
+        logging.info("Started at..." + str( start_time))
+        logging.info("Ended at..." + str( time.perf_counter()))
+        del myactivelist[os.getpid()]
+        exit()
+        
+        
+def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = mysql.connector.connect(**config)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = mysql.connector.connect(**config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while myactivelist[os.getpid()] == 1 :         
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter() - start_time    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = mysql.connector.connect(**config)
+                
+         search_actor = random.choice(default_values['actors_with_50_movies'])
+         #print(search_actor)
+         search_director = random.choice(default_values['directors_with_50_movies'])
+         #print(search_director)
+         
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 1)
+         year2 = random.randrange(1900, 2015, 1)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year1,))
+         x = func_movies_by_director(my_query,parm1,search_director)
+         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year2,))
+         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+         
+       except: 
+           logging.info("error in read only workload")
+           logging.info('pid:', os.getpid())
+           error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()

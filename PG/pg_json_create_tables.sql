@@ -144,8 +144,25 @@ create table movies_normalized_aggregate_ratings(
 );	
 
 	
+
+	
+CREATE TABLE voting_count_history (
+  ai_myid int,
+  store_time timestamp WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  title varchar(255),
+  imdb_id varchar(20),
+  comment_count bigint NOT NULL DEFAULT '0',
+  max_rate int DEFAULT NULL,
+  avg_rate decimal(14,4) DEFAULT NULL,
+  upvotes decimal(32,0) DEFAULT NULL,
+  downvotes decimal(32,0) DEFAULT NULL
+) ;
+alter table voting_count_history add primary key (title,ai_myid,store_time);
+
+CREATE INDEX cnt_hist_ai_idx ON voting_count_history (ai_myid);
+
+
 GRANT all privileges on all tables in schema public to movie_json_user; 	
 GRANT all privileges on all sequences in schema public to movie_json_user; 	
-	
 	
 	

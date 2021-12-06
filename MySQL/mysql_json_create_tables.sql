@@ -120,4 +120,16 @@ create table movies_normalized_aggregate_ratings(
 	  imdb_rating int
 ) engine = innodb;	
 
-
+CREATE TABLE `voting_count_history` (
+  `ai_myid` int NOT NULL,
+  `store_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `title` varchar(255) NOT NULL,
+  `imdb_id` varchar(20) DEFAULT NULL,
+  `comment_count` bigint NOT NULL DEFAULT '0',
+  `max_rate` int DEFAULT NULL,
+  `avg_rate` decimal(14,4) DEFAULT NULL,
+  `upvotes` decimal(32,0) DEFAULT NULL,
+  `downvotes` decimal(32,0) DEFAULT NULL,
+  PRIMARY KEY (`title`,`ai_myid`,`store_time`),
+  KEY `ai_myid` (`ai_myid`)
+) ENGINE=InnoDB;
