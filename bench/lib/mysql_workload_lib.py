@@ -17,7 +17,7 @@ def query_db(cnx,sql,parms,fetch):
       cursor.execute(sql, parms)      
       if fetch:
          x = cursor.fetchall()
-      cnx.commit();
+      #cnx.commit();
       return(x)
 
 def query_db_new_connect(config,sql,parms,fetch):
@@ -502,7 +502,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
     logging.debug("Ended at..." + str( time.perf_counter()))
     mytime1 = round(time.perf_counter()-start_time,3);
     timeper = round(mytime1/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist4[os.getpid()]
     exit()
 
@@ -654,12 +654,12 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
+    logging.debug("Ending Loop....")
     #logging.info("Started at..." + str( start_time))
     #logging.info("Ended at..." + str( time.perf_counter()))
     mytime1 = round(time.perf_counter()-start_time,3);
     timeper = round(mytime1/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
@@ -814,7 +814,7 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
         #logging.info("Ended at..." + str( time.perf_counter()))
         mytime1 = round(time.perf_counter()-start_time,3);
         timeper = round(mytime1/count,2)
-        logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
+        logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
         del myactivelist[os.getpid()]
         exit()
         
@@ -899,7 +899,7 @@ def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connec
     #logging.info("Ended at..." + str( time.perf_counter()))
     mytime1 = round(time.perf_counter()-start_time,3);
     timeper = round(mytime1/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
@@ -918,6 +918,7 @@ def func_comment_on_movie (qry_func,parm1,movieid,vote,comment) :
         simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )" 
         myparm =  (movieid,vote,comment)
         qry_func(parm1, simulate_comment_on_movie,myparm,0)
+        parm1.commit()
         
 def func_find_movies_by_id (qry_func,parm1,id) :
         simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
@@ -930,6 +931,7 @@ def func_update_vote_movie (qry_func,parm1,id, upvote, downvote) :
         x = 0 
         try:
           x = qry_func(parm1, simulate_updating_movie_record_with_vote,myparm,0)
+          parm1.commit()
         except mysql.connector.Error as err:
           logging.info("problem with long running select update on vote")
           logging.info("Something went wrong: {}".format(err))              

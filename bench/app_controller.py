@@ -316,6 +316,20 @@ def full_stop_workload():
     for key in activelist[3]:
         activelist[3][key]=0
     thread_list[3] = []
+    
+    for key in activelist[4]:
+        activelist[4][key]=0
+    thread_list[4] = []
+    
+    for key in activelist[5]:
+        activelist[5][key]=0
+    thread_list[5] = []
+    
+    for key in activelist[6]:
+        activelist[6][key]=0
+    thread_list[6] = []
+
+    
     if (args.nopmm == 0) :
         os.system('pmm-admin annotate "Full Stop Benchmark" --tags "Benchmark, Stop,'+ tag +'"')
     logging.info('Issued Deactivate Benchmark, Full Stop')
