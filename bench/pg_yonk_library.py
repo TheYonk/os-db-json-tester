@@ -110,7 +110,7 @@ def new_connection(MYDSN):
     return connect
       
       
-def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1):
+def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1,mytime,mycount,wid):
     current_time = 0
     start_time = 0
     qry = 0
@@ -144,7 +144,7 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     start_time = time.perf_counter()
  
     while activelist1[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter() 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -182,6 +182,8 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
          vote = func_generate_vote()
             
          x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
     if not create_new_connection_per_qry :
         parm1.commit()
     logging.info("Ending Loop....")
@@ -222,7 +224,7 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
     start_time = time.perf_counter()
  
     while runme == 1 :         
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -268,6 +270,596 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
     logging.info("Ended at..." + str( time.perf_counter()))
     
              
+
+def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2,mytime,mycount,wid):
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist2))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while activelist2[os.getpid()] == 1 :         
+         current_time = time.perf_counter()
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 5	
+         
+         
+         x = func_rpt_ratings_over_year_range(my_query,parm1,year1,year2)
+         x = func_rpt_movies_by_year(my_query,parm1)
+         x = func_rpt_directors_year_range(my_query,parm1,year1,year2)
+         x = func_rpt_movies_for_actor(my_query,parm1,random.choice(list_actors))
+         x = func_rpt_movies_for_actor_fuzzy(my_query,parm1,random.choice(list_actors))
+         x = func_rpt_movies_for_actor_year(my_query,parm1,random.choice(list_actors),year1,year2)
+         x = func_rpt_movies_per_country_year(my_query,parm1,year1,year2)
+         x = func_rpt_material_vote_count(my_query,parm1,search_title)
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del activelist2[os.getpid()]
+    exit()
+       
+
+def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3,mytime,mycount,wid):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist3))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while activelist3[os.getpid()] == 1 :         
+         current_time = time.perf_counter() 
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(ai_myids)
+         
+         x = func_fill_random_comments(MYDSN,ai_myids,10) 
+         x = func_update_random_comments(MYDSN, ai_myids, 5) 
+         x = func_delete_random_comments(MYDSN,ai_myids,6) 
+         time.sleep(sleep_timer)
+         
+         
+         r = random.randint(1,3)
+         if r == 1:
+            x = func_fill_random_comments(MYDSN,ai_myids,5)
+         if r == 2:
+            x = func_delete_random_comments(MYDSN,ai_myids,2)
+         if r == 3 :
+            x = func_update_random_comments(MYDSN, ai_myids, 2) 
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+         time.sleep(sleep_timer)
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del activelist3[os.getpid()]
+    exit()
+    
+
+def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4,mytime,mycount,wid):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(activelist4))
+   
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while activelist4[os.getpid()] == 1 :         
+         current_time = time.perf_counter() 
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 10	
+         locktime = (random.randint(50,1000)/100) 
+         
+         r = random.randint(1,4)
+         if r == 1:
+            x = func_really_bad_for_update (MYDSN, locktime, year1, year2)
+         if r == 2:
+            x = func_find_movie_by_actor_for_update (MYDSN,search_actor,locktime)
+         if r == 3 :
+            x = func_find_update_meta (MYDSN, locktime, search_title) 
+         if r == 4 :
+            x = func_find_update_comments (MYDSN,locktime)
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del activelist4[os.getpid()]
+    exit()
+    
+
+def single_user_actions_special(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
+    #testing out stump an expert workload...
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    runme = 1
+    
+    find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
+    find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
+    find_movies_by_fuzzy_actor = "select imdb_id, title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name like %s"
+    simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
+    simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )"
+    simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"    
+    
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = mysql.connector.connect(**config) 
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = mysql.connector.connect(**config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+    while runme == 1 :         
+         current_time = time.perf_counter() 
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = mysql.connector.connect(**config)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
+     
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         myid = x[0][0]
+         
+         x = func_find_movie_comments (my_query,parm1,myid)
+         
+         vote = func_generate_vote()
+         #logging.info(str(vote))
+         comment = func_generate_comment(letters,20,50)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 5
+         
+         
+         y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
+         y = func_update_vote_movie(my_query,parm1,myid, vote['upvote'], vote['downvote'])
+         
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_movie_comments (my_query,parm1,x[0][0])
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
+         vote = func_generate_vote()
+         x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
+         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
+         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         
+         runme = 2
+    if not create_new_connection_per_qry :
+        parm1.commit()
+
+
+def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    
+     
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+
+    while myactivelist[os.getpid()] == 1 :         
+       #try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter()  
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(default_values['actors_with_50_movies'])
+         #print(search_actor)
+         search_director = random.choice(default_values['directors_with_50_movies'])
+         #print(search_director)
+         
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 1)
+         year2 = random.randrange(1900, 2015, 1)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year1,))
+         x = func_movies_by_director(my_query,parm1,search_director)
+         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year2,))
+         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+       #except Exception as e:
+       #    logging.error("error: %s", e)
+       #    z = sys.exc_info()[0]
+       #    logging.error("systems: %s",z )  
+       #except: 
+       #    logging.info("error in read only workload")
+       #    logging.info('pid:', os.getpid())
+       #    error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+    
+def single_user_actions_special_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    
+     
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+
+    while myactivelist[os.getpid()] == 1 :         
+       #country:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter()
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         myid = x[0][0]
+         x = func_find_movie_comments (my_query,parm1,myid)
+         year1 = random.randrange(1900, 2015, 5)
+         year2 =  year1 + 5
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_movie_comments (my_query,parm1,x[0][0])
+         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
+         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
+         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+       #except: 
+       #    logging.info("error in special workload")
+       #    logging.info('pid:', os.getpid())
+       #    error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+    
+    
+def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+    start_time = time.perf_counter()
+ 
+    while myactivelist[os.getpid()] == 1 :         
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter() 
+         if create_new_connection : 
+             parm1.commit()  
+             parm1.close()
+             my_query = query_db
+             parm1 = psycopg2.connect(MYDSN)
+                
+             search_actor = random.choice(list_actors)
+             search_title = random.choice(list_tiles)
+             search_id = random.choice(list_ids)
+             year1 = random.randrange(1900, 2015, 1)
+             year2 = random.randrange(1900, 2015, 1)
+         
+
+             x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+             x = func_top_movies_year(my_query,parm1,(year1,))
+             x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
+             mycount[wid] = mycount[wid] + 1
+             mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+         
+       except: 
+            logging.info("error in read only workload")
+            logging.info('pid:', os.getpid())
+            error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+        
+        
+def read_only_user_json_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("pid: %s" , os.getpid())
+    logging.info("Active List: %s" , str(myactivelist))
+   
+     
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = psycopg2.connect(MYDSN)  
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = MYDSN
+        else : 
+           my_query = query_db
+           parm1 = psycopg2.connect(MYDSN)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+ 
+
+    while myactivelist[os.getpid()] == 1 :         
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter()    
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = psycopg2.connect(MYDSN)
+                
+         search_actor = random.choice(default_values['actors_with_50_movies'])
+         #print(search_actor)
+         search_director = random.choice(default_values['directors_with_50_movies'])
+         #print(search_director)
+         
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 1)
+         year2 = random.randrange(1900, 2015, 1)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year1,))
+         x = func_movies_by_director(my_query,parm1,search_director)
+         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
+         
+         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
+         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year2,))
+         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+         
+       except: 
+           logging.info("error in read only workload")
+           logging.info('pid:', os.getpid())
+           error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    del myactivelist[os.getpid()]
+    exit()
+    
 def func_find_movie_by_actor (qry_func,parm1,actor_name) :
         find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
         x = qry_func(parm1, find_movies_by_actor,actor_name,1)
@@ -708,211 +1300,6 @@ def func_pk_varchar (MYDSN) :
             logging.info('done Changing PK') 
             
             return x
-                    
-def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2):
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist2))
-   
-    
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-    while activelist2[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(list_actors)
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         year1 = random.randrange(1900, 2015, 5)
-         year2 =  year1 + 5	
-         
-         
-         x = func_rpt_ratings_over_year_range(my_query,parm1,year1,year2)
-         x = func_rpt_movies_by_year(my_query,parm1)
-         x = func_rpt_directors_year_range(my_query,parm1,year1,year2)
-         x = func_rpt_movies_for_actor(my_query,parm1,random.choice(list_actors))
-         x = func_rpt_movies_for_actor_fuzzy(my_query,parm1,random.choice(list_actors))
-         x = func_rpt_movies_for_actor_year(my_query,parm1,random.choice(list_actors),year1,year2)
-         x = func_rpt_movies_per_country_year(my_query,parm1,year1,year2)
-         x = func_rpt_material_vote_count(my_query,parm1,search_title)
-         
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del activelist2[os.getpid()]
-    exit()
-       
-#cnt = 0 
-#threadcount = 0
-#threadlist = []
-
-#while cnt <  args.user_count:   
-#    threadlist.append(threading.Thread(target=single_user_actions_v2, args=(MYDSN,args.time_to_run,args.sleep_timer,args.create_new_connection,args.create_new_connection_per_qry,list_actors,list_tiles,list_ids)))
-#    threadcount = threadcount + 1    
-#    threadlist[-1].start()
-#    cnt = cnt + 1
-#    time.sleep(args.sleep_timer)
-#if len(sys.argv) == 1:
-#     time_to_run = 300
-#else :
-#     print ("Run Time Set to: " + sys.argv[1])
-#     time_to_run = int(sys.argv[1])
-#current_time = 0
-#debug = 0
-#qry = 0;
-
-def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3):
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist3))
-   
-    
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-    while activelist3[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(list_actors)
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(ai_myids)
-         
-         x = func_fill_random_comments(MYDSN,ai_myids,10) 
-         x = func_update_random_comments(MYDSN, ai_myids, 5) 
-         x = func_delete_random_comments(MYDSN,ai_myids,6) 
-         time.sleep(sleep_timer)
-         
-         
-         r = random.randint(1,3)
-         if r == 1:
-            x = func_fill_random_comments(MYDSN,ai_myids,5)
-         if r == 2:
-            x = func_delete_random_comments(MYDSN,ai_myids,2)
-         if r == 3 :
-            x = func_update_random_comments(MYDSN, ai_myids, 2) 
-
-         time.sleep(sleep_timer)
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del activelist3[os.getpid()]
-    exit()
-    
-
-def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4):
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist4))
-   
-    
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-    while activelist4[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(list_actors)
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         year1 = random.randrange(1900, 2015, 5)
-         year2 =  year1 + 10	
-         locktime = (random.randint(50,1000)/100) 
-         
-         r = random.randint(1,4)
-         if r == 1:
-            x = func_really_bad_for_update (MYDSN, locktime, year1, year2)
-         if r == 2:
-            x = func_find_movie_by_actor_for_update (MYDSN,search_actor,locktime)
-         if r == 3 :
-            x = func_find_update_meta (MYDSN, locktime, search_title) 
-         if r == 4 :
-            x = func_find_update_comments (MYDSN,locktime)
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del activelist4[os.getpid()]
-    exit()
-    
 
 def func_load_voting_count_hisory(config) :
                load_etl = "insert into voting_count_history select ai_myid, now(), title, imdb_id, comment_count, max_rate, avg_rate, upvotes, downvotes from view_voting_counts"
@@ -996,397 +1383,4 @@ def func_find_actors_and_characters_by_title_json (qry_func,parm1,title_name) :
         find_movies_by_title = "select title, imdb_rating, actor_name, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and title =%s"
         x = qry_func(parm1, find_movies_by_title,title_name,1)
         return x       
-           
-def single_user_actions_special(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
-    #testing out stump an expert workload...
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    runme = 1
-    
-    find_movies_by_actor = "select title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name= %s and actor_name != ''"
-    find_movies_by_title = "select imdb_id, title, imdb_rating from movies_normalized_meta a where title = %s"
-    find_movies_by_fuzzy_actor = "select imdb_id, title, imdb_rating, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and actor_name like %s"
-    simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where imdb_id = %s"
-    simulate_comment_on_movie = "insert into movies_normalized_user_comments (ai_myid, rating, comment ) values ( %s, %s, %s )"
-    simulate_updating_movie_record_with_vote = "update movies_normalized_meta set upvotes=upvotes+%s, downvotes=downvotes+%s where ai_myid = %s"    
-    
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = mysql.connector.connect(**config) 
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = config
-        else : 
-           my_query = query_db
-           parm1 = mysql.connector.connect(**config)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-    while runme == 1 :         
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = mysql.connector.connect(**config)
-                
-         search_actor = random.choice(list_actors)
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
-     
-         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         myid = x[0][0]
-         
-         x = func_find_movie_comments (my_query,parm1,myid)
-         
-         vote = func_generate_vote()
-         #logging.info(str(vote))
-         comment = func_generate_comment(letters,20,50)
-         year1 = random.randrange(1900, 2015, 5)
-         year2 =  year1 + 5
-         
-         
-         y = func_comment_on_movie(my_query,parm1,myid,vote['uservote'], comment)
-         y = func_update_vote_movie(my_query,parm1,myid, vote['upvote'], vote['downvote'])
-         
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_movie_comments (my_query,parm1,x[0][0])
-         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
-         vote = func_generate_vote()
-         x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
-         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
-         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         
-         runme = 2
-    if not create_new_connection_per_qry :
-        parm1.commit()
-
-
-def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(myactivelist))
-   
-    
-     
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-
-    while myactivelist[os.getpid()] == 1 :         
-       #try:
-         if error == 1 :
-             logging.info('Starting Over! ', os.getpid())
-             error = 0
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(default_values['actors_with_50_movies'])
-         #print(search_actor)
-         search_director = random.choice(default_values['directors_with_50_movies'])
-         #print(search_director)
-         
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         year1 = random.randrange(1900, 2015, 1)
-         year2 = random.randrange(1900, 2015, 1)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_top_movies_year(my_query,parm1,(year1,))
-         x = func_movies_by_director(my_query,parm1,search_director)
-         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_top_movies_year(my_query,parm1,(year2,))
-         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
-         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
-       
-       #except Exception as e:
-       #    logging.error("error: %s", e)
-       #    z = sys.exc_info()[0]
-       #    logging.error("systems: %s",z )  
-       #except: 
-       #    logging.info("error in read only workload")
-       #    logging.info('pid:', os.getpid())
-       #    error = 1
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del myactivelist[os.getpid()]
-    exit()
-    
-def single_user_actions_special_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(myactivelist))
-   
-    
-     
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-
-    while myactivelist[os.getpid()] == 1 :         
-       #country:
-         if error == 1 :
-             logging.info('Starting Over! ', os.getpid())
-             error = 0
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(list_actors)
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))   
-         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         myid = x[0][0]
-         x = func_find_movie_comments (my_query,parm1,myid)
-         year1 = random.randrange(1900, 2015, 5)
-         year2 =  year1 + 5
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_movie_comments (my_query,parm1,x[0][0])
-         x = func_check_comment_rates_last_week(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
-         x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
-         x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         
-       #except: 
-       #    logging.info("error in special workload")
-       #    logging.info('pid:', os.getpid())
-       #    error = 1
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del myactivelist[os.getpid()]
-    exit()
-    
-    
-def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(myactivelist))
-   
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-    start_time = time.perf_counter()
- 
-    while myactivelist[os.getpid()] == 1 :         
-       try:
-         if error == 1 :
-             logging.info('Starting Over! ', os.getpid())
-             error = 0
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-             parm1.commit()  
-             parm1.close()
-             my_query = query_db
-             parm1 = psycopg2.connect(MYDSN)
-                
-             search_actor = random.choice(list_actors)
-             search_title = random.choice(list_tiles)
-             search_id = random.choice(list_ids)
-             year1 = random.randrange(1900, 2015, 1)
-             year2 = random.randrange(1900, 2015, 1)
-         
-
-             x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-             x = func_top_movies_year(my_query,parm1,(year1,))
-             x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
-             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
-             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
-            
-         
-       except: 
-            logging.info("error in read only workload")
-            logging.info('pid:', os.getpid())
-            error = 1
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del myactivelist[os.getpid()]
-    exit()
-        
-        
-def read_only_user_json_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
-    
-    current_time = 0
-    start_time = 0
-    qry = 0
-    debug = 0
-    error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(myactivelist))
-   
-     
-    if create_new_connection : 
-        my_query = query_db
-        parm1 = psycopg2.connect(MYDSN)  
-        
-    else :  
-        if create_new_connection_per_qry :
-           my_query = query_db_new_connect
-           parm1 = MYDSN
-        else : 
-           my_query = query_db
-           parm1 = psycopg2.connect(MYDSN)
-           parm1.commit()  
-           
-    letters = string.ascii_lowercase
-      
-    start_time = time.perf_counter()
- 
-
-    while myactivelist[os.getpid()] == 1 :         
-       try:
-         if error == 1 :
-             logging.info('Starting Over! ', os.getpid())
-             error = 0
-         current_time = time.perf_counter() - start_time    
-         if create_new_connection : 
-              parm1.commit()  
-              parm1.close()
-              my_query = query_db
-              parm1 = psycopg2.connect(MYDSN)
-                
-         search_actor = random.choice(default_values['actors_with_50_movies'])
-         #print(search_actor)
-         search_director = random.choice(default_values['directors_with_50_movies'])
-         #print(search_director)
-         
-         search_title = random.choice(list_tiles)
-         search_id = random.choice(list_ids)
-         year1 = random.randrange(1900, 2015, 1)
-         year2 = random.randrange(1900, 2015, 1)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_top_movies_year(my_query,parm1,(year1,))
-         x = func_movies_by_director(my_query,parm1,search_director)
-         x = func_movies_by_actor_with_many(my_query,parm1,search_actor)
-         
-         x = func_find_movie_by_actor(my_query,parm1,random.choice(list_actors))
-         x = func_find_movies_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_find_movies_by_id(my_query,parm1,(random.choice(list_ids),))
-         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         x = func_top_movies_year(my_query,parm1,(year2,))
-         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
-         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
-         
-       except: 
-           logging.info("error in read only workload")
-           logging.info('pid:', os.getpid())
-           error = 1
-         
- 
-    if not create_new_connection_per_qry :
-        parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    del myactivelist[os.getpid()]
-    exit()
+                               

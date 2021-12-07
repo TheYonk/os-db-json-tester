@@ -68,7 +68,9 @@ for key in user_function_list:
     worker_threads.append('chosen_lib.'+user_function_list[key])
     wid_lookup[key] = len(thread_list)
     thread_list.append([])
-activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
+activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
+timinglist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
+countlist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
 print(wid_lookup)
 #activelist1 = Manager().dict()
 #activelist2 = Manager().dict()
@@ -89,6 +91,45 @@ tag = settings['name']+str(settings['appnode'])+'-'+settings['host']
 
 logging.debug('read file %s, found the following settings: %s', args.myfile, settings)
 
+#set the driver if not in the settings file...
+try: 
+    settings['myclient'] 
+except:
+    settings['myclient'] = args.myclient
+
+if (args.myclient != settings['myclient']):
+    settings['myclient'] = args.myclient    
+    
+#fill in missing workload
+try:
+   settings['website_workload'] = settings['website_workload'] + 0
+except:
+   settings['website_workload'] =0
+try:       
+    settings['reporting_workload']= settings['reporting_workload'] + 0
+except:
+   settings['reporting_workload'] =0
+try:
+    settings['comments_workload']= settings['comments_workload'] + 0
+except:
+   settings['comments_workload'] =0    
+try:
+    settings['longtrans_workload']= settings['longtrans_workload'] + 0
+except:
+   settings['longtrans_workload'] =0
+try:
+    settings['special_workload'] = settings['special_workload'] + 0
+except:
+   settings['special_workload'] =0
+try:
+    settings['read_only_workload']= settings['read_only_workload'] + 0
+except:
+   settings['read_only_workload'] =0
+try:
+    settings['list_workload']= settings['list_workload'] + 0
+except:
+   settings['list_workload'] =0
+    
 MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host']
 
 config = {
@@ -113,6 +154,34 @@ def reload_config(myfile):
        with open(myfile, "r") as read_file:
          settings = json.load(read_file)
        read_file.close();
+       try:
+          settings['website_workload'] = settings['website_workload'] + 0
+       except:
+          settings['website_workload'] =0
+       try:       
+           settings['reporting_workload']= settings['reporting_workload'] + 0
+       except:
+          settings['reporting_workload'] =0
+       try:
+           settings['comments_workload']= settings['comments_workload'] + 0
+       except:
+          settings['comments_workload'] =0    
+       try:
+           settings['longtrans_workload']= settings['longtrans_workload'] + 0
+       except:
+          settings['longtrans_workload'] =0
+       try:
+           settings['special_workload'] = settings['special_workload'] + 0
+       except:
+          settings['special_workload'] =0
+       try:
+           settings['read_only_workload']= settings['read_only_workload'] + 0
+       except:
+          settings['read_only_workload'] =0
+       try:
+           settings['list_workload']= settings['list_workload'] + 0
+       except:
+          settings['list_workload'] =0
        return settings
     except:
         logging.error('Problem reading file: %s ', myfile)
@@ -160,14 +229,14 @@ def active_threads_list():
 def spawn_app_nodes(count,wid):
      logging.debug("inside spawn_app_nodes")
      #worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
-     worker_desc = ['General Website','Reporting','Chat','Long Transactions']
+     worker_desc = ['General Website','Reporting','Chat','Long Transactions','Special Workload','Read_only_workload','json','multi-row ro']
     
      global activelist
      global thread_list
      global mysql_driver
      if count > 0:
         for x in range(count):
-            process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
+            process = multiprocessing.Process(target=eval(worker_threads[wid]), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid],timinglist,countlist,wid), daemon=True)
             process.start()
             activelist[wid][process.pid]=1
             logging.info('Started %s Workload as Pid %s', worker_desc[wid], process.pid)
@@ -195,7 +264,7 @@ def spawn_special_nodes(count,wid,myfunction):
      if count > 0:
         for x in range(count):
             func='chosen_lib.'+myfunction
-            process = multiprocessing.Process(target=eval(func), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid]), daemon=True)
+            process = multiprocessing.Process(target=eval(func), args=(connect_string,1000,0.1,0,0,default_values['list_actors'],default_values['list_titles'],default_values['list_ids'], default_values['ai_myids'],default_values,activelist[wid],timinglist,countlist,wid), daemon=True)
             process.start()
             activelist[wid][process.pid]=1
             logging.info('Started %s Workload as Pid %s', myfunction, process.pid)
@@ -225,6 +294,9 @@ def startup_workers():
         spawn_app_nodes(settings['reporting_workload'], wid_lookup['reporting_workload'])
         spawn_app_nodes(settings['comments_workload'], wid_lookup['comments_workload'])
         spawn_app_nodes(settings['longtrans_workload'], wid_lookup['longtrans_workload'])
+        spawn_app_nodes(settings['special_workload'], wid_lookup['special_workload'])
+        spawn_app_nodes(settings['read_only_workload'], wid_lookup['read_only_workload'])
+        spawn_app_nodes(settings['list_workload'], wid_lookup['list_workload'])
     
 def full_stop_workload():
     global activelist
@@ -276,12 +348,30 @@ if settings['bench_active']==1:
                
 last_settings = settings;
 start_time = time.perf_counter()
+
+if (args.time > 0):
+   logging.info('Will Terminate after %s' ,args.time)
+   
+
 try: 
  while True:
     if (args.time > 0):
         current_time=time.perf_counter()
-        if (current_time - start_time > args.time):
+        xt = current_time - start_time
+        if (xt % 300):
+            logging.info('Time Check: %s' ,xt)
+            logging.info('Active Counts: %s',countlist )
+            logging.info('Timing Counts: %s',timinglist )
+            res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
+            logging.info('Time Per: %s',res )
+            
+            
+        if (xt > args.time ):
             logging.info('Reached time to shutdown')
+            logging.info('FINAL: Active Counts: %s',countlist )
+            logging.info('FINAL: Timing Counts: %s',timinglist )
+            res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
+            logging.info('FINAL: Time Per: %s',res )
             full_stop_workload()
             time.sleep(10)
             break
@@ -352,6 +442,12 @@ try:
                     spawn_app_nodes(new_settings['comments_workload'] - last_settings['comments_workload'],wid_lookup['comments_workload'])
                 if (new_settings['longtrans_workload'] - last_settings['longtrans_workload'] != 0):
                     spawn_app_nodes(new_settings['longtrans_workload'] - last_settings['longtrans_workload'],wid_lookup['longtrans_workload'])   
+                if (new_settings['list_workload'] - last_settings['list_workload'] != 0):
+                    spawn_app_nodes(new_settings['list_workload'] - last_settings['list_workload'],wid_lookup['list_workload'])
+                if (new_settings['special_workload'] - last_settings['special_workload'] != 0):
+                    spawn_app_nodes(new_settings['special_workload'] - last_settings['special_workload'],wid_lookup['special_workload'])
+                if (new_settings['read_only_workload'] - last_settings['read_only_workload'] != 0):
+                    spawn_app_nodes(new_settings['read_only_workload'] - last_settings['read_only_workload'],wid_lookup['read_only_workload'])
            logging.info(active_threads_list())
         except Exception as e:
             logging.error('unknown issue')

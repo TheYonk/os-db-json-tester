@@ -56,7 +56,11 @@ def new_connection(config):
 
 
 def load_db(config): 
-    logging.info("Using MySQLDB Driver for Python")
+    if (mysql_driver=='mysqlclient'):
+        logging.info("Using MySQLDB Driver for Python")
+    if (mysql_driver=='connector'):
+        logging.info("Using mysql.connector Driver for Python")
+        
     logging.info('inside load function')
     
     load_ids = "select ai_myid, imdb_id, year, title from movies_normalized_meta"
@@ -118,14 +122,14 @@ def load_db(config):
     return returnval
 
   
-def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1):
+def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1,mytime,mycount,wid):
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
     
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist1))
+    logging.debug("pid: %s" , os.getpid())
+    logging.debug("Active List: %s" , str(activelist1))
     
 
     if create_new_connection : 
@@ -146,7 +150,7 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
     start_time = time.perf_counter()
     count = 0
     while activelist1[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time   
+         current_time = time.perf_counter()
          count = count +1;
           
          if create_new_connection : 
@@ -176,15 +180,17 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
          x = func_find_up_down_votes(my_query,parm1,(random.choice(list_ids),))
          vote = func_generate_vote()
          x = func_update_vote_movie(my_query,parm1,x[0][0], vote['upvote'],vote['downvote'])
-         
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)      
+            
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    logging.debug("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist1[os.getpid()]
     exit()
     
@@ -256,25 +262,25 @@ def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connectio
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    logging.debug("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
 
     
              
    
-def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2):
+def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2,mytime,mycount,wid):
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
     error = 0 
     
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist2))
+    logging.debug("pid: %s" , os.getpid())
+    logging.debug("Active List: %s" , str(activelist2))
    
     
     if create_new_connection : 
@@ -299,7 +305,7 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
          if error == 1 :
             logging.info('Starting Over! ', os.getpid())
             error = 0        
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -321,29 +327,31 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
          x = func_rpt_movies_for_actor_year(my_query,parm1,random.choice(list_actors),year1,year2)
          x = func_rpt_movies_per_country_year(my_query,parm1,year1,year2)
          x = func_rpt_material_vote_count(my_query,parm1,search_title)
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
          
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    logging.debug("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     
     del activelist2[os.getpid()]
     exit()
        
 
-def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3):
+def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3,mytime,mycount,wid):
     
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
     error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist3))
+    logging.debug("pid: %s" , os.getpid())
+    logging.debug("Active List: %s" , str(activelist3))
    
     
     if create_new_connection : 
@@ -365,7 +373,7 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     count = 0
  
     while activelist3[os.getpid()] == 1 :         
-         current_time = time.perf_counter() - start_time 
+         current_time = time.perf_counter()
          count = count +1;
            
          if error == 1 :
@@ -405,30 +413,32 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
            logging.info('pid:', os.getpid())
            error = 1
            pass
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
          time.sleep(sleep_timer)
          
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    logging.debug("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist3[os.getpid()]
     exit()
     
 
-def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4):
+def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4,mytime,mycount,wid):
     
     current_time = 0
     start_time = 0
     qry = 0
     debug = 0
     error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(activelist4))
+    logging.debug("pid: %s" , os.getpid())
+    logging.debug("Active List: %s" , str(activelist4))
    
     
     if create_new_connection : 
@@ -452,7 +462,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -477,6 +487,8 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
               x = func_find_update_meta (config, locktime, search_title) 
            if r == 4 :
               x = func_find_update_comments (config,locktime)
+           mycount[wid] = mycount[wid] + 1
+           mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)      
          except: 
            logging.info("error in long running transaction")
            logging.info('pid:', os.getpid())
@@ -485,12 +497,12 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    logging.debug("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
     del activelist4[os.getpid()]
     exit()
 
@@ -522,7 +534,7 @@ def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connec
     start_time = time.perf_counter()
     count = 0
     while runme == 1 :         
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()    
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -560,13 +572,13 @@ def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connec
          x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
          x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
          x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         
+
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
 
 
-def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
     current_time = 0
     start_time = 0
@@ -599,7 +611,7 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -632,7 +644,8 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
          x = func_top_movies_year(my_query,parm1,(year2,))
          x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
          x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
-         
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
        except: 
            logging.info("error in read only workload")
            logging.info('pid:', os.getpid())
@@ -642,15 +655,15 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
     if not create_new_connection_per_qry :
         parm1.commit()
     logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    #logging.info("Started at..." + str( start_time))
+    #logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
-def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
     current_time = 0
     start_time = 0
@@ -683,7 +696,7 @@ def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_con
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter() 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -712,7 +725,8 @@ def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_con
          x = func_check_comment_rates_last_week_actor(my_query,parm1,random.choice(list_actors)) 
          x = func_find_movies_dtls_country_year(my_query,parm1,year1,year2)
          x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-         
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
        except: 
            logging.info("error in special workload")
            logging.info('pid:', os.getpid())
@@ -721,17 +735,17 @@ def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_con
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    #logging.info("Ending Loop....")
+    #logging.info("Started at..." + str( start_time))
+    logging.debug("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
     
-def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
         current_time = 0
         start_time = 0
@@ -764,7 +778,7 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
              if error == 1 :
                  logging.info('Starting Over! ', os.getpid())
                  error = 0
-             current_time = time.perf_counter() - start_time    
+             current_time = time.perf_counter()
              if create_new_connection : 
                   parm1.commit()  
                   parm1.close()
@@ -785,7 +799,8 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
              x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
              x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
             
-         
+             mycount[wid] = mycount[wid] + 1
+             mytime[wid] = mytime[wid] + (time.perf_counter() - current_time)
            #except: 
            #    logging.info("error in read only workload")
            #    logging.info('pid:', os.getpid())
@@ -794,17 +809,17 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
  
         if not create_new_connection_per_qry :
             parm1.commit()
-        logging.info("Ending Loop....")
-        logging.info("Started at..." + str( start_time))
-        logging.info("Ended at..." + str( time.perf_counter()))
-        mytime = round(time.perf_counter()-start_time,3);
-        timeper = round(mytime/count,2)
-        logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+        logging.debug("Ending Loop....")
+        #logging.info("Started at..." + str( start_time))
+        #logging.info("Ended at..." + str( time.perf_counter()))
+        mytime1 = round(time.perf_counter()-start_time,3);
+        timeper = round(mytime1/count,2)
+        logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
         del myactivelist[os.getpid()]
         exit()
         
         
-def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist):
+def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
     current_time = 0
     start_time = 0
@@ -837,7 +852,7 @@ def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connec
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
-         current_time = time.perf_counter() - start_time    
+         current_time = time.perf_counter()   
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -879,12 +894,12 @@ def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connec
  
     if not create_new_connection_per_qry :
         parm1.commit()
-    logging.info("Ending Loop....")
-    logging.info("Started at..." + str( start_time))
-    logging.info("Ended at..." + str( time.perf_counter()))
-    mytime = round(time.perf_counter()-start_time,3);
-    timeper = round(mytime/count,2)
-    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime  )
+    logging.debug("Ending Loop....")
+    #logging.info("Started at..." + str( start_time))
+    #logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
