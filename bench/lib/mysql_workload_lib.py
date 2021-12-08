@@ -498,7 +498,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
            mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)      
          except: 
            logging.info("error in long running transaction")
-           logging.info('pid:', os.getpid())
+           logging.info('pid:', str(os.getpid()))
            error = 1
          
  
