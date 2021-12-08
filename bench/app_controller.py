@@ -301,31 +301,31 @@ def startup_workers():
 def full_stop_workload():
     global activelist
     global thread_list
-    for key in activelist[0]:
+    for key in activelist[0].copy():
         activelist[0][key]=0
     thread_list[0] = []
     
-    for key in activelist[1]:
+    for key in activelist[1].copy():
         activelist[1][key]=0
     thread_list[1] = []
     
-    for key in activelist[2]:
+    for key in activelist[2].copy():
         activelist[2][key]=0
     thread_list[2] = []
     
-    for key in activelist[3]:
+    for key in activelist[3].copy():
         activelist[3][key]=0
     thread_list[3] = []
     
-    for key in activelist[4]:
+    for key in activelist[4].copy():
         activelist[4][key]=0
     thread_list[4] = []
     
-    for key in activelist[5]:
+    for key in activelist[5].copy():
         activelist[5][key]=0
     thread_list[5] = []
     
-    for key in activelist[6]:
+    for key in activelist[6].copy():
         activelist[6][key]=0
     thread_list[6] = []
 
@@ -386,6 +386,7 @@ try:
             logging.info('FINAL: Timing Counts: %s',timinglist )
             res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
             logging.info('FINAL: Time Per: %s',res )
+        
             full_stop_workload()
             time.sleep(10)
             break
