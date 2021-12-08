@@ -1235,6 +1235,7 @@ def func_find_update_comments (config,sleeptime) :
         update = "update movies_normalized_user_comments set comment = comment, rating = rating * 1, comment_update_time = current_timestamp where comment_id = %s"
         delete = "delete from movies_normalized_user_comments where comment_id = %s"
         mycursor.execute(query, ())
+        x = list()
         try:
          res = mycursor.fetchall()
          time.sleep(sleeptime)
