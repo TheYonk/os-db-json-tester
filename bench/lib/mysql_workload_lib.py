@@ -33,6 +33,11 @@ def query_db_new_connect(config,sql,parms,fetch):
         logging.info("problem with general new connect_query")
         logging.info("Something went wrong: {}".format(err))              
         logging.info(sql, parms)
+        logging.info( "Error code: %s", e.errno)        # error number
+        logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
+        logging.info("Error message: %s", e.msg)       # error message
+        s = str(e)
+        logging.info("Error: %s", s)                   # errno, sqlstate, msg values
         pass
         
       if fetch:
@@ -50,7 +55,7 @@ def new_connection(config):
        client_options =''
     if (mysql_driver=="connector"):
        cnx = mysql.connector.connect(**config)
-       #client_options ='buffered=True'
+       client_options ='buffered=True'
        
     return cnx
 
@@ -60,6 +65,8 @@ def load_db(config):
         logging.info("Using MySQLDB Driver for Python")
     if (mysql_driver=='connector'):
         logging.info("Using mysql.connector Driver for Python")
+        client_options ='buffered=True'
+        
         
     logging.info('inside load function')
     
@@ -1298,20 +1305,28 @@ def func_delete_random_comments (config,list_ids,comments_to_remove) :
          search_id = random.choice(list_ids)
          select = "select comment_id from movies_normalized_user_comments where ai_myid = %s limit 3"
          mycursor.execute(select,(search_id,))
-         for (comment_id) in mycursor:
+         x = mycursor.fetchall()
+         
+         for (comment_id) in x:
              delete = "delete from movies_normalized_user_comments where comment_id = %s" 
              try:
                mycursor2.execute(delete, comment_id)
              except mysql.connector.Error as err:
                logging.info("problem with delete")
                logging.info("Something went wrong: {}".format(err))              
+               logging.info( "Error code: %s", e.errno)        # error number
+               logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
+               logging.info("Error message: %s", e.msg)       # error message
+               s = str(e)
+               logging.info("Error: %s", s)                   # errno, sqlstate, msg values
                logging.info(delete, comment_id)
                pass
              except:
                logging.info("problem with delete, non-mysql")
                break
                
-     myconnect.commit();             
+     myconnect.commit();
+     myconnect.close()             
      return i;
 
 
@@ -1333,7 +1348,8 @@ def func_update_random_comments (config,list_ids,comments_to_update) :
             except:
               logging.info("problem with Update, non-mysql")
               break
-        myconnect.commit();             
+        myconnect.commit();  
+        myconnect.close()                        
         return i;
         
      
