@@ -384,7 +384,7 @@ try:
             logging.info('Active Counts: %s',countlist )
             logging.info('Timing Counts: %s',timinglist )
             res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
-            cntper = [round((i / 30),2) for i in countlist]
+            cntper = [round((i / xt),2) for i in countlist]
             logging.info('Time Per: %s',res )
             logging.info('Count PS: %s',cntper )
             
@@ -394,7 +394,7 @@ try:
             logging.info('FINAL: Active Counts: %s',countlist )
             logging.info('FINAL: Timing Counts: %s',timinglist )
             res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
-            cntper = [round((i / 30),2) for i in countlist]
+            cntper = [round((i / xt),2) for i in countlist]
             logging.info('FINAL: Time Per: %s',res )
             logging.info('FINAL: Count PS: %s',cntper )
         
