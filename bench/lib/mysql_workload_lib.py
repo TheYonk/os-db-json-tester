@@ -467,7 +467,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
     count = 0
     while activelist4[os.getpid()] == 1 :         
          if error == 1 :
-             logging.info('Starting Over! ', os.getpid())
+             logging.info('Starting Over! ', str(os.getpid()))
              error = 0
          current_time = time.perf_counter()
          if create_new_connection : 
@@ -1251,8 +1251,8 @@ def func_find_update_comments (config,sleeptime) :
               logging.error("systems: %s",z )
               fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
               logging.error(exc_type, fname, exc_tb.tb_lineno)
-              logging.error("Result Set: %s ", x)
               logging.error("Query : %s ", query)
+              pass
               
           try:
             mycursor.execute(update, (y[0],))
