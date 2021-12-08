@@ -1235,10 +1235,23 @@ def func_find_update_comments (config,sleeptime) :
         update = "update movies_normalized_user_comments set comment = comment, rating = rating * 1, comment_update_time = current_timestamp where comment_id = %s"
         delete = "delete from movies_normalized_user_comments where comment_id = %s"
         mycursor.execute(query, ())
-        x = mycursor.fetchall()
+        res = mycursor.fetchall()
         time.sleep(sleeptime)
+        x = list(res)
         if(len(x) >0):
-          y = x.pop()
+          try:
+             y = x.pop()
+          except Exception as e:
+              logging.error('unknown issue')
+              logging.error("error: %s", e)
+              z = sys.exc_info()
+              exc_type, exc_obj, exc_tb = sys.exc_info()
+              logging.error("systems: %s",z )
+              fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+              logging.error(exc_type, fname, exc_tb.tb_lineno)
+              logging.error("Result Set: %s ", x)
+              logging.error("Query : %s ", query)
+              
           try:
             mycursor.execute(update, (y[0],))
           except mysql.connector.Error as err:
