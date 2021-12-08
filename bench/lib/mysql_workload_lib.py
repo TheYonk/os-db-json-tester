@@ -1235,10 +1235,11 @@ def func_find_update_comments (config,sleeptime) :
         update = "update movies_normalized_user_comments set comment = comment, rating = rating * 1, comment_update_time = current_timestamp where comment_id = %s"
         delete = "delete from movies_normalized_user_comments where comment_id = %s"
         mycursor.execute(query, ())
-        res = mycursor.fetchall()
-        time.sleep(sleeptime)
-        x = list(res)
-        if(len(x) >0):
+        try:
+         res = mycursor.fetchall()
+         time.sleep(sleeptime)
+         x = list(res)
+         if(len(x) >0):
           try:
              y = x.pop()
           except Exception as e:
@@ -1261,7 +1262,7 @@ def func_find_update_comments (config,sleeptime) :
             pass
           except:
             logging.info("problem with update LT, non-mysql, func_find_update_comments 1")
-        if(len(x) >0):
+         if(len(x) >0):
           y = x.pop()
           try:
             mycursor.execute(update, (y[0],))
@@ -1272,7 +1273,7 @@ def func_find_update_comments (config,sleeptime) :
             pass
           except:
             logging.info("problem with update LT, non-mysql, func_find_update_comments 2")
-        if(len(x) >0):
+         if(len(x) >0):
           y = x.pop()
           try:
             mycursor.execute(delete, (y[0],))
@@ -1283,9 +1284,18 @@ def func_find_update_comments (config,sleeptime) :
             pass
           except:
             logging.info("problem with update LT, non-mysql, func_find_update_comments 3")
-        time.sleep(sleeptime/2)
-        myconnect.commit()
-        myconnect.close()
+         time.sleep(sleeptime/2)
+         myconnect.commit()
+         myconnect.close()
+        except Exception as e:
+              logging.error("error: %s", e)
+              z = sys.exc_info()
+              exc_type, exc_obj, exc_tb = sys.exc_info()
+              logging.error("systems: %s",z )
+              fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+              logging.error(exc_type, fname, exc_tb.tb_lineno)
+              logging.error("Query : %s ", query)
+              pass
         return x        
 
 def func_fill_random_comments (config,list_ids,comments_to_add) :
