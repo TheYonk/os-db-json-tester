@@ -68,10 +68,12 @@ for key in user_function_list:
     worker_threads.append('chosen_lib.'+user_function_list[key])
     wid_lookup[key] = len(thread_list)
     thread_list.append([])
-activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
+activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
 timinglist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
 countlist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
-print(wid_lookup)
+logging.debug(wid_lookup)
+logging.debug("worker threads: %s", worker_threads)
+
 #activelist1 = Manager().dict()
 #activelist2 = Manager().dict()
 #activelist3 = Manager().dict()
@@ -224,12 +226,14 @@ def stop_pg() :
      logging.info('Stop PG')   
      
 def active_threads_list():
-     return 'G:(' + str(len(thread_list[0])) + ') R: ('+ str(len(thread_list[1])) + ') IU: ('+ str(len(thread_list[2])) + ') LT: ('+ str(len(thread_list[3])) +') '
+     return 'G:(' + str(len(thread_list[0])) + ') R: ('+ str(len(thread_list[1])) + ') IU: ('+ str(len(thread_list[2])) + ') LT: ('+ str(len(thread_list[3])) +') SP:(' + str(len(thread_list[4])) + ') RO: ('+ str(len(thread_list[5])) + ') JS: ('+ str(len(thread_list[6])) + ') MR: ('+ str(len(thread_list[7])) +') '
 
 def spawn_app_nodes(count,wid):
      logging.debug("inside spawn_app_nodes")
      #worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
      worker_desc = ['General Website','Reporting','Chat','Long Transactions','Special Workload','Read_only_workload','json','multi-row ro']
+     logging.debug("WID: %s", wid)
+     logging.debug("adding workers for: %s", worker_threads[wid])
     
      global activelist
      global thread_list
@@ -328,7 +332,10 @@ def full_stop_workload():
     for key in activelist[6].copy():
         activelist[6][key]=0
     thread_list[6] = []
-
+    
+    for key in activelist[7].copy():
+        activelist[7][key]=0
+    thread_list[7] = []
     
     if (args.nopmm == 0) :
         os.system('pmm-admin annotate "Full Stop Benchmark" --tags "Benchmark, Stop,'+ tag +'"')
@@ -372,7 +379,7 @@ try:
     if (args.time > 0):
         current_time=time.perf_counter()
         xt = current_time - start_time
-        if (xt % 300):
+        if (round(xt) % 30 == 0):
             logging.info('Time Check: %s' ,xt)
             logging.info('Active Counts: %s',countlist )
             logging.info('Timing Counts: %s',timinglist )

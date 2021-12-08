@@ -73,6 +73,7 @@ def stop_mysql() :
 def stop_pg() : 
      print('Stop PG')   
      
+connect_string = config
       
 if settings['type'] == 'mysql' and settings['bench_active']==1:
         try:
