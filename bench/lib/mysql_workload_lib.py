@@ -14,10 +14,28 @@ mysql_driver = ''
 def query_db(cnx,sql,parms,fetch):
       x=[]
       cursor = cnx.cursor()
-      cursor.execute(sql, parms)      
-      if fetch:
-         x = cursor.fetchall()
-      #cnx.commit();
+      try:
+         cursor.execute(sql, parms)      
+         if fetch:
+            x = cursor.fetchall()
+         #cnx.commit();
+      except mysql.connector.Error as err:
+         logging.info("problem with general new connect_query")
+         logging.info("Something went wrong: {}".format(err))              
+         logging.info(sql, parms)
+         logging.info( "Error code: %s", e.errno)        # error number
+         logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
+         logging.info("Error message: %s", e.msg)       # error message
+         s = str(e)
+         logging.info("Error: %s", s)                   # errno, sqlstate, msg values
+         pass
+      except Exception as e:
+          logging.error('unknown issue')
+          logging.error("error: %s", e)
+          z = sys.exc_info()
+          exc_type, exc_obj, exc_tb = sys.exc_info()
+          logging.error("systems: %s",z )
+          pass   
       return(x)
 
 def query_db_new_connect(config,sql,parms,fetch):
@@ -29,6 +47,8 @@ def query_db_new_connect(config,sql,parms,fetch):
            cursor.execute(sql)
         else :
            cursor.execute(sql, parms)
+        if fetch:
+            x = cursor.fetchall()
       except mysql.connector.Error as err:
         logging.info("problem with general new connect_query")
         logging.info("Something went wrong: {}".format(err))              
@@ -39,9 +59,12 @@ def query_db_new_connect(config,sql,parms,fetch):
         s = str(e)
         logging.info("Error: %s", s)                   # errno, sqlstate, msg values
         pass
-        
-      if fetch:
-         x = cursor.fetchall()
+      except Exception as e:
+          logging.error('unknown issue')
+          logging.error("error: %s", e)
+          z = sys.exc_info()
+          exc_type, exc_obj, exc_tb = sys.exc_info()
+          logging.error("systems: %s",z )
       cnx.commit()
       cnx.close()
       return(x)

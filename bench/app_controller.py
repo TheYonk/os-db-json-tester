@@ -376,20 +376,13 @@ if (args.time > 0):
 
 try: 
  while True:
+    current_time=time.perf_counter()
+    xt = current_time - start_time
+    rpttime = 300
+         
     if (args.time > 0):
-        current_time=time.perf_counter()
-        xt = current_time - start_time
-        if (round(xt) % 30 == 0):
-            logging.info('Time Check: %s' ,xt)
-            logging.info('Active Counts: %s',countlist )
-            logging.info('Timing Counts: %s',timinglist )
-            res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
-            cntper = [round((i / xt),2) for i in countlist]
-            logging.info('Time Per: %s',res )
-            logging.info('Count PS: %s',cntper )
-            
-            
         if (xt > args.time ):
+            rpttime=300
             logging.info('Reached time to shutdown')
             logging.info('FINAL: Active Counts: %s',countlist )
             logging.info('FINAL: Timing Counts: %s',timinglist )
@@ -397,10 +390,19 @@ try:
             cntper = [round((i / xt),2) for i in countlist]
             logging.info('FINAL: Time Per: %s',res )
             logging.info('FINAL: Count PS: %s',cntper )
-        
             full_stop_workload()
             time.sleep(10)
             break
+    
+    if (round(xt) % rpttime == 0):
+        logging.info('Time Check: %s' ,xt)
+        logging.info('Active Counts: %s',countlist )
+        logging.info('Timing Counts: %s',timinglist )
+        res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
+        cntper = [round((i / xt),2) for i in countlist]
+        logging.info('Time Per: %s',res )
+        logging.info('Count PS: %s',cntper )
+        
     try:
         new_settings = reload_config(args.myfile)
     except: 
