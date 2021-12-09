@@ -183,5 +183,35 @@ SW=1
 
 print_json 
 
+NAME="report"
+WW=0
+RW=5
+CW=0
+LTW=0
+ROW=0
+LW=0
+SW=0
 
+print_json 
 
+NAME="multirow"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=0
+LW=5
+SW=0
+
+print_json 
+
+NAME="multirow"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=0
+LW=0
+SW=5
+
+print_json 
