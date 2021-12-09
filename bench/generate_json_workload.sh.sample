@@ -51,6 +51,17 @@ write_bench()
 	echo -e "sleep 60" >> ${BENCHSCRIPT}
 }
 
+NAME="warm_up"
+WW=20
+RW=0
+CW=20
+LTW=0
+ROW=0
+LW=0
+SW=0
+
+print_json 
+
 NAME="read_only"
 WW=0
 RW=0

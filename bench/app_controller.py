@@ -255,7 +255,7 @@ def spawn_app_nodes(count,wid):
               activelist[wid][process.pid]=0
               logging.info('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
               logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
-     if (args.nopmm == 0) :
+     if (args.nopmm == 0 and count != 0 and args.time == -1) :
          os.system('pmm-admin annotate "' + worker_desc[wid] + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )
      logging.debug("Finishing call to spawn_app_nodes")
@@ -283,7 +283,7 @@ def spawn_special_nodes(count,wid,myfunction):
               activelist[wid][process.pid]=0
               logging.info('%s Thread, Stopping Pid %s', worker_desc[wid], process.pid)
               logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
-     if (args.nopmm == 0) :
+     if (args.nopmm == 0 and count != 0) :
          os.system('pmm-admin annotate "' + myfunction + ' Changed: ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
      logging.debug('%s Workload at count: %s', myfunction, str(len(thread_list[wid])) )
      logging.debug("Finishing call to spawn_special_nodes")
@@ -303,7 +303,8 @@ def startup_workers():
         spawn_app_nodes(settings['special_workload'], wid_lookup['special_workload'])
         spawn_app_nodes(settings['read_only_workload'], wid_lookup['read_only_workload'])
         spawn_app_nodes(settings['list_workload'], wid_lookup['list_workload'])
-    
+        if (args.nopmm == 0 ) :
+            os.system('pmm-admin annotate "Start Up Workload: ' + args.myfile + ' : ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
 def full_stop_workload():
     global activelist
     global thread_list

@@ -981,124 +981,6 @@ def func_find_movie_comments (qry_func,parm1,id ) :
         x = qry_func(parm1, query,(id,),1)
         return x    
 
-def func_create_drop_title_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
-        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.debug('creating index on Title')
-           x = query_db_new_connect(config, create_index,(),0)
-        else :
-           logging.debug('dropping index on Title') 
-           x = query_db_new_connect(config, drop_index,(),0)
-        return x    
-        
-def func_create_title_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
-        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.debug('creating index on Title')
-           x = query_db_new_connect(config, create_index,(),0)
-        else :
-           logging.debug('Index on Title already exists') 
-           #x = query_db_new_connect(config, drop_index,(),0)
-           x = 0
-        return x    
-
-def func_drop_title_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
-        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.debug('Index on Title does not exist')
-           #x = query_db_new_connect(config, create_index,(),0)
-           x = 0
-        else :
-           logging.debug('dropping index on Title') 
-           x = query_db_new_connect(config, drop_index,(),0)
-        return x    
-        
-def func_create_drop_year_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.info('creating index on Year')
-           x = query_db_new_connect(config, create_index,(),0)
-        else :
-           logging.info('dropping index on Year') 
-           x = query_db_new_connect(config, drop_index,(),0)
-        return x    
-
-def func_create_year_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.info('creating index on Year')
-           x = query_db_new_connect(config, create_index,(),0)
-        else :
-           logging.info('Index already exsits') 
-           x = 0
-        return x  
-          
-def func_drop_year_index (config) :
-        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
-        logging.info('value: ', val)
-        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
-        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
-        
-        if val[0][0] == 0:
-           logging.info('Index on Year does not exist')
-           x = 0
-        else :
-           logging.info('dropping index on Year : %s', drop_index) 
-           x = query_db_new_connect(config, drop_index,(),0)
-        return x   
-
-def func_add_actor_year_index (config) :  
-         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
-         logging.info('value: ', val)
-         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
-         drop_index = "drop index actor_name_idx on movies_normalized_actors"
-        
-         if val[0][0] == 0:
-           logging.info('creating index on actor name')
-           x = query_db_new_connect(config, create_index,(),0)
-         else :
-           logging.info('Actor Index already exsits') 
-           x = 0
-         return x
-         
-def func_drop_actor_year_index (config) :
-         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
-         logging.info('value: ', val)
-         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
-         drop_index = "drop index actor_name_idx on movies_normalized_actors"
-        
-         if val[0][0] == 0:
-            logging.info('Index on Actor Name does not exist')
-            x = 0
-         else :
-            logging.info('dropping index on Actor Name') 
-            x = query_db_new_connect(config, drop_index,(),0)
-         return x
-                
-def func_find_index (config, table_name, index_name) :        
-        findIdx = "select count(*) from information_schema.statistics where table_name = %s and index_name = %s;";        
-        x = query_db_new_connect(config, findIdx, (table_name, index_name), 1)
-        return(x)
 
 def func_create_materialized_view_votes(config) :
     
@@ -1539,4 +1421,210 @@ def func_find_movies_by_id_json (qry_func,parm1,id) :
 def func_find_actors_and_characters_by_title_json (qry_func,parm1,title_name) :
         find_movies_by_title = "select title, imdb_rating, actor_name, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and title =%s"
         x = qry_func(parm1, find_movies_by_title,title_name,1)
-        return x            
+        return x  
+        
+        
+        
+def func_create_drop_title_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
+        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.debug('creating index on Title')
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.debug('dropping index on Title') 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x    
+        
+def func_create_title_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
+        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.debug('creating index on Title')
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.debug('Index on Title already exists') 
+           #x = query_db_new_connect(config, drop_index,(),0)
+           x = 0
+        return x    
+
+def func_drop_title_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
+        drop_index = "drop index idx_nmm_title on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.debug('Index on Title does not exist')
+           #x = query_db_new_connect(config, create_index,(),0)
+           x = 0
+        else :
+           logging.debug('dropping index on Title') 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x    
+        
+def func_create_drop_year_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.info('creating index on Year')
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.info('dropping index on Year') 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x    
+
+def func_create_year_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.info('creating index on Year')
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.info('Index already exsits') 
+           x = 0
+        return x  
+          
+def func_drop_year_index (config) :
+        val = func_find_index(config,'movies_normalized_meta','idx_nmm_year')
+        logging.info('value: ', val)
+        create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
+        drop_index = "drop index idx_nmm_year on movies_normalized_meta"
+        
+        if val[0][0] == 0:
+           logging.info('Index on Year does not exist')
+           x = 0
+        else :
+           logging.info('dropping index on Year : %s', drop_index) 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x   
+
+def func_add_actor_year_index (config) :  
+         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
+         logging.info('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx on movies_normalized_actors"
+        
+         if val[0][0] == 0:
+           logging.info('creating index on actor name')
+           x = query_db_new_connect(config, create_index,(),0)
+         else :
+           logging.info('Actor Index already exsits') 
+           x = 0
+         return x
+         
+def func_drop_actor_year_index (config) :
+         val = func_find_index(config,'movies_normalized_actors','actor_name_idx')
+         logging.info('value: ', val)
+         create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
+         drop_index = "drop index actor_name_idx on movies_normalized_actors"
+        
+         if val[0][0] == 0:
+            logging.info('Index on Actor Name does not exist')
+            x = 0
+         else :
+            logging.info('dropping index on Actor Name') 
+            x = query_db_new_connect(config, drop_index,(),0)
+         return x
+                
+def func_find_index (config, table_name, index_name) :        
+        findIdx = "select count(*) from information_schema.statistics where table_name = %s and index_name = %s;";        
+        x = query_db_new_connect(config, findIdx, (table_name, index_name), 1)
+        return(x)
+ 
+ 
+def func_create_index (config,name,table,columns) :
+        val = func_find_index(config,table,name)
+        logging.info('value: ', val)
+        create_index = "create index "+ name +" on "+ table +" ("+ columns +") "
+        drop_index = "drop index "+ name +"  on " + table
+        
+        if val[0][0] == 0:
+           logging.info('creating index on %s : %s', table, columns)
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.info('Index on %s : %s already exsits', table, columns)
+           x = 0
+        return x  
+          
+def func_drop_index (config,name,table,columns) :
+        val = func_find_index(config,table,name)
+        logging.info('value: ', val)
+        create_index = "create index "+ name +" on "+ table +" ("+ columns +") "
+        drop_index = "drop index "+ name +"  on " + table
+        
+        if val[0][0] == 0:
+           logging.info('Index on %s : %s does not exsit', table, columns)
+           x = 0
+        else :
+           logging.info('dropping index on %s : %s', table, drop_index) 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x   
+
+def func_toggle_index (config,name,table,columns) :
+        val = func_find_index(config,table,name)
+        logging.info('value: ', val)
+        create_index = "create index "+ name +" on "+ table +" ("+ columns +") "
+        drop_index = "drop index "+ name +"  on " + table
+        
+        if val[0][0] == 0:
+           logging.info('creating index on %s : %s', table, columns)
+           x = query_db_new_connect(config, create_index,(),0)
+        else :
+           logging.info('dropping index on %s : %s', table, drop_index) 
+           x = query_db_new_connect(config, drop_index,(),0)
+        return x  
+
+def reset_optimized_indexes(config):
+          func_create_index(config,'idx_comments_id','movies_normalized_user_comments','ai_myid,comment_add_time')
+          func_create_index(config,'idx_comments_com_time','movies_normalized_user_comments','comment_add_time')
+          
+          func_create_index(config,'idx_nmm_rate','movies_normalized_meta','imdb_rating')
+          func_create_index(config,'idx_nmm_year_rate','movies_normalized_meta','year,imdb_rating')
+          func_create_index(config,'idx_nmm_country_year','movies_normalized_meta','country,year,imdb_rating')
+          func_create_index(config,'idx_nmm_title','movies_normalized_meta','title')
+          
+          func_create_index(config,'idx_nd_id','movies_normalized_director','ai_myid')
+          func_create_index(config,'idx_nd_director','movies_normalized_director','director, ai_myid')
+          
+          func_create_index(config,'idx_nc_char','movies_normalized_cast','actor_character')
+          func_create_index(config,'idx_nc_id2','movies_normalized_cast','ai_actor_id,ai_myid')
+          func_create_index(config,'idx_nc_id','movies_normalized_cast','ai_myid')
+          
+          func_create_index(config,'idx_na_name','movies_normalized_actors','actor_name')
+          
+def drop_all_indexes(config):
+          func_drop_index(config,'idx_comments_id','movies_normalized_user_comments','ai_myid,comment_add_time')
+          func_drop_index(config,'idx_comments_com_time','movies_normalized_user_comments','comment_add_time')
+          
+          func_drop_index(config,'idx_nmm_rate','movies_normalized_meta','imdb_rating')
+          func_drop_index(config,'idx_nmm_year_rate','movies_normalized_meta','year,imdb_rating')
+          func_drop_index(config,'idx_nmm_country_year','movies_normalized_meta','country,year,imdb_rating')
+          func_drop_index(config,'idx_nmm_title','movies_normalized_meta','title')
+          
+          func_drop_index(config,'idx_nd_id','movies_normalized_director','ai_myid')
+          func_drop_index(config,'idx_nd_director','movies_normalized_director','director, ai_myid')
+          
+          func_drop_index(config,'idx_nc_char','movies_normalized_cast','actor_character')
+          func_drop_index(config,'idx_nc_id2','movies_normalized_cast','ai_actor_id,ai_myid')
+          func_drop_index(config,'idx_nc_id','movies_normalized_cast','ai_myid')
+          
+          func_drop_index(config,'idx_na_name','movies_normalized_actors','actor_name')          
+          
+def reset_mixed_indexes(config):
+          func_drop_index(config,'idx_nmm_year_rate','movies_normalized_meta','year,imdb_rating')
+          func_drop_index(config,'idx_nd_director','movies_normalized_director','director, ai_myid')
+          func_drop_index(config,'idx_nmm_country_year','movies_normalized_meta','country,year,imdb_rating')
+          
