@@ -1,0 +1,20 @@
+{
+    "name": "mysql",
+    "desc": "mysql Movie Database Test for: mysql",
+    "appnode": 1,
+    "host": "127.0.0.1",
+    "username": "movie_json_user",
+    "password": "Ch@nge_me_1st",
+    "database": "movie_json_test",
+    "bench_active": 1,
+    "type": "mysql",
+    "website_workload": 2,
+    "reporting_workload": 2,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 5,
+    "list_workload": 3,
+    "special_workload": 2,
+    "title_idx": 1,
+    "year_idx": 1
+}
