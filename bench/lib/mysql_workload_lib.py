@@ -488,9 +488,10 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
       
     start_time = time.perf_counter()
     count = 0
+    mypid = os.getpid()
     while activelist4[os.getpid()] == 1 :         
          if error == 1 :
-             logging.info('Starting Over! ', str(os.getpid()))
+             logging.info('Starting Over! ',str(mypid))
              error = 0
          current_time = time.perf_counter()
          if create_new_connection : 
@@ -521,7 +522,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
            mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)      
          except: 
            logging.info("error in long running transaction")
-           logging.info('pid:', str(os.getpid()))
+           logging.info('pid:',str(mypid))
            error = 1
          
  
@@ -1221,7 +1222,7 @@ def func_find_update_meta (config, sleeptime, title) :
         title2 = title[0][0:3]+'%'
         query = "select ai_myid,title, imdb_rating, year from movies_normalized_meta where title like %s for update  "
         update = " update movies_normalized_meta set upvotes = upvotes + 1, imdb_rating = imdb_rating * 1, year = year where ai_myid = %s  "
-        
+        x = []
         try:
           mycursor.execute(query, (title2,))
           x = mycursor.fetchall()
