@@ -1,0 +1,109 @@
+    
+Read Only:
+	
+	"website_workload": 0,
+    "reporting_workload": 0,
+    "comments_workload": 0,
+    "longtrans_workload": 0,
+    "read_only_workload": 10,
+    "list_workload": 0,
+    "special_workload": 0,
+
+Kitchen Sink:
+    "website_workload": 2,
+    "reporting_workload": 2,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 5,
+    "list_workload": 3,
+    "special_workload": 2,
+	
+Medium Web:
+    "website_workload": 20,
+    "reporting_workload": 0,
+    "comments_workload": 0,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,
+	
+Large Web:
+    "website_workload": 50,
+    "reporting_workload": 0,
+    "comments_workload": 0,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,
+	
+Small Write :
+    "website_workload": 0,
+    "reporting_workload": 0,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,
+	
+Large Write :
+    "website_workload": 0,
+    "reporting_workload": 0,
+    "comments_workload": 25,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,
+	
+50-50 med:
+    "website_workload": 10,
+    "reporting_workload": 0,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,	
+	
+50-50 large:
+    "website_workload": 20,
+    "reporting_workload": 0,
+    "comments_workload": 20,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,	
+	
+Base Small:
+    "website_workload": 5,
+    "reporting_workload": 2,
+    "comments_workload": 5,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,	
+
+Base Med:
+    "website_workload": 10,
+    "reporting_workload": 4,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,	
+	
+Base LRG:
+    "website_workload": 15,
+    "reporting_workload": 6,
+    "comments_workload": 15,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,	
+
+Complete Web:
+    "website_workload": 10,
+    "reporting_workload": 0,
+    "comments_workload": 10,
+    "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 2,
+    "special_workload": 1,	
