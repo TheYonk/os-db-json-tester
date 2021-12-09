@@ -245,7 +245,9 @@ def spawn_app_nodes(count,wid):
             activelist[wid][process.pid]=1
             logging.info('Started %s Workload as Pid %s', worker_desc[wid], process.pid)
             thread_list[wid].append(process)
-            logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )                    
+            logging.info('%s Workload at count: %s', worker_desc[wid], str(len(thread_list[wid])) )   
+            #adding in a small delay between threads to allow for workload to stagger better, other wise the start/stop times tend to align 
+            time.sleep(0.2)                 
      if count < 0:
       for x in range(abs(count)):
           if (len(activelist[wid].keys()))> 0:
@@ -423,7 +425,7 @@ try:
                         default_values = start_mysql()
                         start_time = time.perf_counter()
                         if (args.nopmm == 0) :
-                            os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
+                            os.system('pmm-admin annotate "Full MySQL Start Workload:'+ args.function +'" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
                
@@ -432,7 +434,7 @@ try:
                         default_values = start_pg()
                         start_time = time.perf_counter()
                         if (args.nopmm == 0) :
-                            os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
+                            os.system('pmm-admin annotate "Full PG Start Workload:'+ args.function +'" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
               startup_workers()
@@ -444,7 +446,7 @@ try:
                         default_values = start_mysql()
                         start_time = time.perf_counter()
                         if (args.nopmm == 0) :
-                            os.system('pmm-admin annotate "Full MySQL Start" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
+                            os.system('pmm-admin annotate "Full MySQL Start Workload:'+ args.myfile +'" --tags "MySQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
                
@@ -453,7 +455,7 @@ try:
                         default_values = start_pg()
                         start_time = time.perf_counter()
                         if (args.nopmm == 0) :
-                            os.system('pmm-admin annotate "Full PG Start" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
+                            os.system('pmm-admin annotate "Full PG Start Workload:'+ args.myfile +'" --tags "PostgreSQL, Benchmark, Start-Stop,'+ tag +'"')
                     except:
                         logging.error('Some Error')
               startup_workers()
