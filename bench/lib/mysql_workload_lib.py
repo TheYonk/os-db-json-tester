@@ -1228,11 +1228,11 @@ def func_find_update_meta (config, sleeptime, title) :
         except mysql.connector.Error as err:
           logging.info("problem with long running select update on meta")
           logging.info("Something went wrong: {}".format(err))              
-          logging.info(update, y[0])
+          logging.info(update, title2)
           pass
         except:
           logging.info("problem with update LT, non-mysql,func_find_update_meta 1")
-          logging.info(update, y[0])
+          logging.info(update, title2)
         time.sleep(sleeptime)
         y = random.choice(x)
         try:

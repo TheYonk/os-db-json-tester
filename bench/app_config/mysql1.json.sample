@@ -8,10 +8,13 @@
     "database": "movie_json_test",
     "bench_active": 0,
     "type": "mysql",
-    "website_workload": 5,
+    "website_workload": 8,
     "reporting_workload": 0,
-    "comments_workload": 14,
+    "comments_workload": 4,
     "longtrans_workload": 0,
+    "read_only_workload": 0,
+    "list_workload": 0,
+    "special_workload": 0,
     "title_idx": 1,
     "year_idx": 1
 }
