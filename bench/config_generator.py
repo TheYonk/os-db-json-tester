@@ -20,7 +20,10 @@ parser.add_argument('-w', '--webusers', dest='webusers', type=int, default=0, he
 parser.add_argument('-r', '--reportusers', dest='rptusers', type=int, default=0, help='# of reporting users')
 parser.add_argument('-c', '--chatusers', dest='chatusers', type=int, default=0, help='# of chat users')
 parser.add_argument('-l', '--longtrans', dest='longtrans', type=int, default=0, help='# of long running users')
-parser.add_argument('-ro', '--readonly', dest='readonly', type=int, default=0, help='# of long running users')
+parser.add_argument('-ro', '--readonly', dest='readonly', type=int, default=0, help='# of readonly users')
+parser.add_argument('-li', '--listworkload', dest='listw', type=int, default=0, help='# of users returning multi-row queries')
+parser.add_argument('-sp', '--special', dest='special', type=int, default=0, help='# of users runing some experimental special stuff')
+
 parser.add_argument('-a', '--active', dest='active', action="store_true", default=0, help='database we are targeting')
 
 args = parser.parse_args()
@@ -50,7 +53,9 @@ for settings in settings_full['databases']:
                  "reporting_workload" : args.rptusers,
                  "comments_workload" : args.chatusers,
                  "longtrans_workload" : args.longtrans,
-                 "readonly_workload" : args.readonly,
+                 "read_only_workload" : args.readonly,
+                 "list_workload" : args.listw,
+                 "special_workload" : args.special,
                  "title_idx" : 1,
              	 "year_idx" : 1
              }

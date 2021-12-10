@@ -6,8 +6,8 @@ import json
 import logging
 import os
 import glob
-import pg_yonk_library
-import mysql_yonk_library
+import lib.pg_workload_lib
+import lib.mysql_workload_lib
 import sys
 import time
 
@@ -41,14 +41,14 @@ def run_event(settings):
    logging.info('Starting the processing of %s ', settings['event'] )
    
    if (settings['type'] == 'mysql'):
-            chosen_lib =  mysql_yonk_library
+            chosen_lib =  lib.mysql_workload_lib
             connect_string = config
             myfunc = (setup['mysql']['events'][settings['event']])
             logging.debug('running function:  %s ', myfunc )
             x = eval('chosen_lib.'+myfunc)(connect_string)
                
    if (settings['type'] == 'postgresql'):
-            chosen_lib =  pg_yonk_library
+            chosen_lib =  lib.pg_workload_lib
             connect_string = MYDSN
             myfunc = (setup['postgresql']['events'][settings['event']])
             logging.debug('running function:  %s ', myfunc )
