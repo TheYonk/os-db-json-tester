@@ -1,8 +1,8 @@
 import json 
 
 #import asyncio
-import pg_yonk_library
-import mysql_yonk_library
+import lib.pg_workload_lib
+import lib.mysql_workload_lib
 import argparse
 #import multiprocessing
 #from multiprocessing import Manager
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
-parser.add_argument('-t', '--time', dest='sleeptime', type=int, default="600", help='time to wait between runs')
+parser.add_argument('-t', '--time', dest='sleeptime', type=int, default="3600", help='time to wait between runs')
 
 args = parser.parse_args()
 print(args)

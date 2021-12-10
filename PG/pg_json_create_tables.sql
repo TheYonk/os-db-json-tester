@@ -76,7 +76,6 @@ create table movies_normalized_meta (
 
 CREATE INDEX gin_index ON movies_normalized_meta USING gin (json_column);
 create unique index imdb_id_idx  on movies_normalized_meta (imdb_id);
-create index rating_idx  on movies_normalized_meta (imdb_rating);
 
 
 create table movies_normalized_actors (
@@ -85,7 +84,6 @@ create table movies_normalized_actors (
 	actor_name varchar(500)
 	);
 create unique index actor_id_idx  on movies_normalized_actors (actor_id);
-create index actor_name_idx  on movies_normalized_actors (actor_name);
 
 create table movies_normalized_cast (
 	inc_id serial primary key, 
@@ -165,4 +163,20 @@ CREATE INDEX cnt_hist_ai_idx ON voting_count_history (ai_myid);
 GRANT all privileges on all tables in schema public to movie_json_user; 	
 GRANT all privileges on all sequences in schema public to movie_json_user; 	
 	
-	
+create index idx_comments_id on movies_normalized_user_comments(ai_myid,comment_add_time);
+create index idx_comments_com_time on movies_normalized_user_comments(comment_add_time);
+
+create index idx_nmm_rate on movies_normalized_meta(imdb_rating);
+create index idx_nmm_year_rate on movies_normalized_meta(year,imdb_rating);
+create index idx_nmm_country_year on movies_normalized_meta(country,year,imdb_rating);
+create index idx_nmm_title on movies_normalized_meta(title);
+
+create index idx_nd_director on movies_normalized_director (director, ai_myid);
+
+create index idx_nd_id on movies_normalized_director(ai_myid);
+
+create index idx_nc_char on movies_normalized_cast(actor_character);
+create index idx_nc_id2 on movies_normalized_cast(ai_actor_id,ai_myid);
+create index idx_nc_id on movies_normalized_cast(ai_myid);
+
+create index idx_na_name on movies_normalized_actors(actor_name);	

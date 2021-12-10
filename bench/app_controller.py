@@ -1,7 +1,7 @@
 import json 
 
 import asyncio
-import pg_yonk_library
+import lib.pg_workload_lib
 import lib.mysql_workload_lib
 import argparse
 import multiprocessing
@@ -79,7 +79,8 @@ logging.debug("worker threads: %s", worker_threads)
 #activelist3 = Manager().dict()
 #activelist4 = Manager().dict()
 
-chosen_lib =  pg_yonk_library
+chosen_lib =  lib.pg_workload_lib
+
 
 
 try:
@@ -212,7 +213,7 @@ def start_mysql() :
 def start_pg() :
      logging.info("Starting PG") 
      global chosen_lib 
-     chosen_lib =  pg_yonk_library
+     chosen_lib =  lib.pg_workload_lib
      global connect_string
      connect_string = MYDSN
      default_values = chosen_lib.load_db(connect_string)
@@ -294,7 +295,7 @@ def event_spawn(eventid):
 
 def startup_workers():
     if args.special:
-        spawn_special_nodes(args.threads,0,user_function_list[args.function])
+        spawn_special_nodes(args.threads, wid_lookup[args.function],user_function_list[args.function])
     else:
         spawn_app_nodes(settings['website_workload'], wid_lookup['website_workload'])
         spawn_app_nodes(settings['reporting_workload'], wid_lookup['reporting_workload'])

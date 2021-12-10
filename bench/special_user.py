@@ -1,8 +1,8 @@
 import json 
 
 #import asyncio
-import pg_yonk_library
-import mysql_yonk_library
+import lib.pg_workload_lib
+import lib.mysql_workload_lib
 import argparse
 #import multiprocessing
 #from multiprocessing import Manager
