@@ -200,7 +200,11 @@ def start_mysql() :
         mysql_driver = 'mysqlclient'
         connect_string = config_myclient
         chosen_lib.mysql_driver = 'mysqlclient'
-        
+     elif (args.myclient=='pymysql'):
+        chosen_lib =  lib.mysql_workload_lib
+        mysql_driver = 'pymysql'
+        connect_string = config_myclient
+        chosen_lib.mysql_driver = 'pymysql'        
      else:
         chosen_lib =  lib.mysql_workload_lib
         mysql_driver = 'connector'

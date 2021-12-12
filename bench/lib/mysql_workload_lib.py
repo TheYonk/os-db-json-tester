@@ -8,6 +8,7 @@ import os
 import sys
 import MySQLdb 
 import mysql.connector
+import pymysql
 
 mysql_driver = ''
 
@@ -79,7 +80,9 @@ def new_connection(config):
     if (mysql_driver=="connector"):
        cnx = mysql.connector.connect(**config)
        client_options ='buffered=True'
-       
+    if (mysql_driver=="pymysql"):
+       cnx = mysql.connector.connect(**config)
+       client_options =''   
     return cnx
 
 
