@@ -12,6 +12,7 @@ import errno
 import os
 import time
 import sys
+import signal
 
 
 parser = argparse.ArgumentParser()
@@ -348,7 +349,21 @@ def full_stop_workload():
     if (args.nopmm == 0) :
         os.system('pmm-admin annotate "Full Stop Benchmark" --tags "Benchmark, Stop,'+ tag +'"')
     logging.info('Issued Deactivate Benchmark, Full Stop')
-    
+    logging.info('Final Time Check: %s' ,xt)
+    logging.info('Final Active Counts: %s',countlist )
+    logging.info('Final Timing Counts: %s',timinglist )
+    res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
+    cntper = [round((i / xt),2) for i in countlist]
+    logging.info('Final Time Per: %s',res )
+    logging.info('Final Count PS: %s',cntper )
+
+
+def signal_handler(sig, frame):
+    logging.info('Starting Forced Shutdown!')
+    full_stop_workload()
+    time.sleep(5)
+    sys.exit(0)
+        
       
 if settings['type'] == 'mysql' and settings['bench_active']==1:
         logging.debug("Setting up MySQL")                
@@ -507,7 +522,13 @@ except Exception as e:
     logging.error("systems: %s",z )
     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
     logging.error(exc_type, fname, exc_tb.tb_lineno)
-    
+    logging.info('Final Time Check: %s' ,xt)
+    logging.info('Final Active Counts: %s',countlist )
+    logging.info('Final Timing Counts: %s',timinglist )
+    res = [round((i / j),2) if j != 0 else 0 for i, j in zip(timinglist, countlist)]
+    cntper = [round((i / xt),2) for i in countlist]
+    logging.info('Final Time Per: %s',res )
+    logging.info('Final Count PS: %s',cntper )
         
 
   

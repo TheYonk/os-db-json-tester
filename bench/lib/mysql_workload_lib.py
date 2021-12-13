@@ -9,9 +9,17 @@ import sys
 import MySQLdb 
 import mysql.connector
 import pymysql
+import signal
 
 mysql_driver = ''
 
+
+def signal_handler(sig, frame):
+    logging.info('Starting Shutdown!')
+    time.sleep(5)
+    sys.exit(0)
+    
+    
 def query_db(cnx,sql,parms,fetch):
       x=[]
       cursor = cnx.cursor()
@@ -21,22 +29,24 @@ def query_db(cnx,sql,parms,fetch):
             x = cursor.fetchall()
          #cnx.commit();
       except mysql.connector.Error as err:
-         logging.info("problem with general new connect_query")
-         logging.info("Something went wrong: {}".format(err))              
-         logging.info(sql, parms)
-         logging.info( "Error code: %s", e.errno)        # error number
-         logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
-         logging.info("Error message: %s", e.msg)       # error message
-         s = str(e)
-         logging.info("Error: %s", s)                   # errno, sqlstate, msg values
-         pass
+               logging.info("problem with general new connect_query")
+               logging.info("Something went wrong: {}".format(err))
+               logging.info(sql, parms)
+               logging.info( "Error code: %s", e.errno)        # error number
+               logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
+               logging.info("Error message: %s", e.msg)       # error message
+               s = str(e)
+               logging.info("Error: %s", s)                   # errno, sqlstate, msg values
+               pass
       except Exception as e:
           logging.error('unknown issue')
           logging.error("error: %s", e)
           z = sys.exc_info()
           exc_type, exc_obj, exc_tb = sys.exc_info()
           logging.error("systems: %s",z )
-          pass   
+      except KeyboardInterrupt: 
+          logging.info('Caught Interupt...')
+          time.sleep(5)
       return(x)
 
 def query_db_new_connect(config,sql,parms,fetch):
@@ -50,16 +60,6 @@ def query_db_new_connect(config,sql,parms,fetch):
            cursor.execute(sql, parms)
         if fetch:
             x = cursor.fetchall()
-      except mysql.connector.Error as err:
-        logging.info("problem with general new connect_query")
-        logging.info("Something went wrong: {}".format(err))              
-        logging.info(sql, parms)
-        logging.info( "Error code: %s", e.errno)        # error number
-        logging.info("SQLSTATE value: %s", e.sqlstate) # SQLSTATE value
-        logging.info("Error message: %s", e.msg)       # error message
-        s = str(e)
-        logging.info("Error: %s", s)                   # errno, sqlstate, msg values
-        pass
       except Exception as e:
           logging.error('unknown issue')
           logging.error("error: %s", e)
@@ -156,6 +156,7 @@ def load_db(config):
 
   
 def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1,mytime,mycount,wid):
+   try:
     current_time = 0
     start_time = 0
     qry = 0
@@ -226,7 +227,12 @@ def single_user_actions_v2(config,time_to_run,sleep_timer,create_new_connection,
     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist1[os.getpid()]
     exit()
-    
+   except:
+      logging.error("This thread failed.... ooooops")
+      mytime1 = round(time.perf_counter()-start_time,3);
+      timeper = round(mytime1/count,2)
+      logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+        
 def single_user_actions_solo(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,default_values,ai_myids):
     current_time = 0
     start_time = 0
@@ -377,7 +383,7 @@ def report_user_actions(config,time_to_run,sleep_timer,create_new_connection,cre
        
 
 def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3,mytime,mycount,wid):
-    
+   try:    
     current_time = 0
     start_time = 0
     qry = 0
@@ -429,7 +435,7 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
            time.sleep(sleep_timer)
          except: 
            logging.info("problem in the insert update delete part 1")
-           logging.info('pid:', os.getpid())
+           #logging.info('pid:', os.getpid())
            error = 1
            pass
          
@@ -443,7 +449,7 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
               x = func_update_random_comments(config, ai_myids, 2) 
          except: 
            logging.info("problem in the insert update delete part 2")
-           logging.info('pid:', os.getpid())
+           #logging.info('pid:', os.getpid())
            error = 1
            pass
          mycount[wid] = mycount[wid] + 1
@@ -461,8 +467,12 @@ def insert_update_delete(config,time_to_run,sleep_timer,create_new_connection,cr
     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist3[os.getpid()]
     exit()
-    
-
+   except:
+     logging.error("This reporting thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+     
 def long_transactions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4,mytime,mycount,wid):
     
     current_time = 0
@@ -543,7 +553,7 @@ def long_transactions(config,time_to_run,sleep_timer,create_new_connection,creat
            
 def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
     #testing out stump an expert workload...
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -610,10 +620,14 @@ def single_user_actions_special(config,time_to_run,sleep_timer,create_new_connec
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
-
+   except:
+      logging.error("This special thread failed.... ooooops")
+      mytime1 = round(time.perf_counter()-start_time,3);
+      timeper = round(mytime1/count,2)
+      logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
 
 def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -682,7 +696,7 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
          mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
        except: 
            logging.info("error in read only workload")
-           logging.info('pid:', os.getpid())
+           #logging.info('pid:', os.getpid())
            error = 1
          
  
@@ -696,9 +710,14 @@ def read_only_user_actions(config,time_to_run,sleep_timer,create_new_connection,
     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
-    
+   except:
+      logging.error("This read only thread failed.... ooooops")  
+      mytime1 = round(time.perf_counter()-start_time,3);
+      timeper = round(mytime1/count,2)
+      logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+      
 def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -763,7 +782,7 @@ def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_con
          mytime[wid] = mytime[wid] + round((time.perf_counter() -current_time),4)
        except: 
            logging.info("error in special workload")
-           logging.info('pid:', os.getpid())
+           #logging.info('pid:', os.getpid())
            error = 1
          
  
@@ -777,10 +796,14 @@ def single_user_actions_special_v2(config,time_to_run,sleep_timer,create_new_con
     logging.info("Times looped: %s Time per Loop : %s total time: %s", count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
-    
-    
+   except:
+      logging.error("This special thread failed.... ooooops") 
+      mytime1 = round(time.perf_counter()-start_time,3);
+      timeper = round(mytime1/count,2)
+      logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+      
 def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
-    
+   try:
         current_time = 0
         start_time = 0
         qry = 0
@@ -851,8 +874,12 @@ def multi_row_returns(config,time_to_run,sleep_timer,create_new_connection,creat
         logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
         del myactivelist[os.getpid()]
         exit()
-        
-        
+   except:
+      logging.error("This MR thread failed.... ooooops")     
+      mytime1 = round(time.perf_counter()-start_time,3);
+      timeper = round(mytime1/count,2)
+      logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )  
+      
 def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
     current_time = 0
