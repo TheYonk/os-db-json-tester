@@ -401,7 +401,7 @@ try:
  while True:
     current_time=time.perf_counter()
     xt = current_time - start_time
-    rpttime = 300
+    rpttime = 120
          
     if (args.time > 0):
         if (xt > args.time ):
