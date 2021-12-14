@@ -73,6 +73,28 @@ SW=0
 
 print_json 
 
+NAME="read_only_20"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=200
+LW=0
+SW=0
+
+print_json 
+
+NAME="read_only_30"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=200
+LW=0
+SW=0
+
+print_json 
+
 NAME="kitchen"
 WW=2
 RW=2
@@ -205,6 +227,17 @@ SW=0
 
 print_json 
 
+NAME="report_lrg"
+WW=0
+RW=10
+CW=0
+LTW=0
+ROW=0
+LW=0
+SW=0
+
+print_json 
+
 NAME="multirow"
 WW=0
 RW=0
@@ -216,7 +249,18 @@ SW=0
 
 print_json 
 
-NAME="multirow"
+NAME="multirow_med"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=0
+LW=10
+SW=0
+
+print_json 
+
+NAME="special"
 WW=0
 RW=0
 CW=0
@@ -224,5 +268,16 @@ LTW=0
 ROW=0
 LW=0
 SW=5
+
+print_json 
+
+NAME="special_med"
+WW=0
+RW=0
+CW=0
+LTW=0
+ROW=0
+LW=0
+SW=10
 
 print_json 

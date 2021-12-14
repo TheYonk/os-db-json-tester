@@ -144,3 +144,11 @@ The config/startup_settings.json is the file that will contain the starting poin
 The config/<name>.json is the database settings file, this needs to be on all systems.  The name of the file should be defined in the name attribute in the startup_settings.  Note we should add a sync later on to push these files.  
 
 
+Python dependencies:
+Right now you will need both the mysql and postgresql clients setup on your application server along with the python libs to support connecting.  It is an all or nothing.  
+
+pip install mysqlclient
+pip install pymysql
+pip install mysql.connector-python
+
+pip install psycopg2
