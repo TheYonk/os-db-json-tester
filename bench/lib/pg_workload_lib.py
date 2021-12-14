@@ -86,13 +86,16 @@ def load_db(MYDSN):
     return returnval
 
 def query_db(cnx,sql,parms,fetch):
-      x=[]
+    x=[]
+    try:
       cursor = cnx.cursor()
       cursor.execute(sql, parms)      
       if fetch:
          x = cursor.fetchall()
       cnx.commit();
-      return(x)
+    except:
+        logging.error("Issue was raised in the query db function")  
+    return(x)
 
 def query_db_new_connect(MYDSN,sql,parms,fetch):
       x=[]
@@ -111,6 +114,7 @@ def new_connection(MYDSN):
       
       
 def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist1,mytime,mycount,wid):
+   try:    
     current_time = 0
     start_time = 0
     qry = 0
@@ -142,9 +146,11 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     letters = string.ascii_lowercase
       
     start_time = time.perf_counter()
+    count = 0
  
-    while activelist1[os.getpid()] == 1 :         
-         current_time = time.perf_counter() 
+    while activelist1[os.getpid()] == 1 :   
+         current_time = time.perf_counter()
+         count = count +1; 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -189,10 +195,19 @@ def single_user_actions_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist1[os.getpid()]
     exit()
-    
+   except:
+     logging.error("This web thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+      
 def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
+   try:
     current_time = 0
     start_time = 0
     qry = 0
@@ -222,9 +237,10 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
     letters = string.ascii_lowercase
       
     start_time = time.perf_counter()
- 
+    count = 0
     while runme == 1 :         
          current_time = time.perf_counter()
+         count = count +1;
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -268,10 +284,17 @@ def single_user_actions_solo(MYDSN,time_to_run,sleep_timer,create_new_connection
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
-    
-             
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+   except:
+     logging.error("This web thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )          
 
 def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist2,mytime,mycount,wid):
+   try:    
     current_time = 0
     start_time = 0
     qry = 0
@@ -297,9 +320,10 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
     letters = string.ascii_lowercase
       
     start_time = time.perf_counter()
- 
+    count = 0
     while activelist2[os.getpid()] == 1 :         
          current_time = time.perf_counter()
+         count = count +1;
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -328,12 +352,19 @@ def report_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,crea
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist2[os.getpid()]
     exit()
-       
+   except:
+     logging.error("This reporting thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )    
 
 def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist3,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -356,11 +387,12 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
            parm1.commit()  
            
     letters = string.ascii_lowercase
-      
+    count = 0  
     start_time = time.perf_counter()
  
     while activelist3[os.getpid()] == 1 :         
-         current_time = time.perf_counter() 
+         current_time = time.perf_counter()
+         count = count +1; 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -394,12 +426,19 @@ def insert_update_delete(MYDSN,time_to_run,sleep_timer,create_new_connection,cre
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist3[os.getpid()]
     exit()
-    
+   except:
+     logging.error("This chat/comments thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  ) 
 
 def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,activelist4,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -422,11 +461,12 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
            parm1.commit()  
            
     letters = string.ascii_lowercase
-      
+    count = 0 
     start_time = time.perf_counter()
  
     while activelist4[os.getpid()] == 1 :         
-         current_time = time.perf_counter() 
+         current_time = time.perf_counter()
+         count = count +1; 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -457,13 +497,20 @@ def long_transactions(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del activelist4[os.getpid()]
     exit()
-    
+   except:
+     logging.error("This reporting thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  ) 
 
 def single_user_actions_special(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids):
     #testing out stump an expert workload...
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -495,7 +542,8 @@ def single_user_actions_special(MYDSN,time_to_run,sleep_timer,create_new_connect
     start_time = time.perf_counter()
  
     while runme == 1 :         
-         current_time = time.perf_counter() 
+         current_time = time.perf_counter()
+         count = count +1; 
          if create_new_connection : 
               parm1.commit()  
               parm1.close()
@@ -541,10 +589,14 @@ def single_user_actions_special(MYDSN,time_to_run,sleep_timer,create_new_connect
          runme = 2
     if not create_new_connection_per_qry :
         parm1.commit()
-
+   except:
+     logging.error("This reporting thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
 
 def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -552,7 +604,7 @@ def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     error = 0
     logging.info("pid: %s" , os.getpid())
     logging.info("Active List: %s" , str(myactivelist))
-   
+    
     
      
     if create_new_connection : 
@@ -569,12 +621,14 @@ def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,c
            parm1.commit()  
            
     letters = string.ascii_lowercase
-      
+    count = 0 
     start_time = time.perf_counter()
  
 
     while myactivelist[os.getpid()] == 1 :         
        #try:
+         current_time = time.perf_counter()
+         count = count +1;
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
@@ -627,11 +681,19 @@ def read_only_user_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,c
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
-    
+   except:
+     logging.error("This read only thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  ) 
+     
 def single_user_actions_special_v2(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
-    
+   try: 
     current_time = 0
     start_time = 0
     qry = 0
@@ -658,10 +720,12 @@ def single_user_actions_special_v2(MYDSN,time_to_run,sleep_timer,create_new_conn
     letters = string.ascii_lowercase
       
     start_time = time.perf_counter()
- 
+    count = 0
 
     while myactivelist[os.getpid()] == 1 :         
        #country:
+         current_time = time.perf_counter()
+         count = count +1;
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
              error = 0
@@ -706,11 +770,19 @@ def single_user_actions_special_v2(MYDSN,time_to_run,sleep_timer,create_new_conn
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
-    
+   except:
+     logging.error("This special thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  ) 
     
 def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+   try:    
     current_time = 0
     start_time = 0
     qry = 0
@@ -734,8 +806,10 @@ def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create
            
     letters = string.ascii_lowercase
     start_time = time.perf_counter()
- 
-    while myactivelist[os.getpid()] == 1 :         
+    count = 0
+    while myactivelist[os.getpid()] == 1 : 
+       current_time = time.perf_counter()
+       count = count +1;            
        try:
          if error == 1 :
              logging.info('Starting Over! ', os.getpid())
@@ -773,9 +847,16 @@ def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
-        
+   except:
+     logging.error("This multi-row thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )     
         
 def read_only_user_json_actions(MYDSN,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
     
@@ -802,7 +883,7 @@ def read_only_user_json_actions(MYDSN,time_to_run,sleep_timer,create_new_connect
            parm1.commit()  
            
     letters = string.ascii_lowercase
-      
+    count = 0 
     start_time = time.perf_counter()
  
 
@@ -857,6 +938,9 @@ def read_only_user_json_actions(MYDSN,time_to_run,sleep_timer,create_new_connect
     logging.info("Ending Loop....")
     logging.info("Started at..." + str( start_time))
     logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
     
