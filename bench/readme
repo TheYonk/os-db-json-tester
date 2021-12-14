@@ -143,6 +143,8 @@ The config/startup_settings.json is the file that will contain the starting poin
 
 The config/<name>.json is the database settings file, this needs to be on all systems.  The name of the file should be defined in the name attribute in the startup_settings.  Note we should add a sync later on to push these files.  
 
+If you want to generate a standard set of tests you can look at the generate_json_workload.sh.sample script.  If you edit this script and add your database credentials it will generate a set of config files in the app_config director along with a script to run all the tests.  This is the easiest way to get started.  
+
 
 Python dependencies:
 Right now you will need both the mysql and postgresql clients setup on your application server along with the python libs to support connecting.  It is an all or nothing.  
