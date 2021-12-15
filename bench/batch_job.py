@@ -24,7 +24,7 @@ print(args)
 global connect_string
 
 
-chosen_lib =  mysql_yonk_library
+chosen_lib =  lib.mysql_workload_lib
 
 
 try:
@@ -78,6 +78,7 @@ connect_string = config
 if settings['type'] == 'mysql' and settings['bench_active']==1:
         try:
             #default_values = start_mysql()
+            chosen_lib =  lib.mysql_workload_lib
             default_values = 0
             connect_string = config
         except Exception as e:
@@ -88,6 +89,7 @@ if settings['type'] == 'mysql' and settings['bench_active']==1:
 if settings['type'] == 'postgresql' and settings['bench_active']==1:
         try:
             #default_values = start_pg()
+            chosen_lib =  lib.pg_workload_lib
             default_values = 0
             connect_string = MYDSN
         except Exception as e:
