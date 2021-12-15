@@ -1279,6 +1279,10 @@ def func_load_voting_count_hisory(config) :
                      x = query_db_new_connect(config, purge_old,(),0)
                      logging.info('finishing purging count history') 
                      return x
+                  except psycopg2.Error as e:
+                      logging.error("error loading voting_count_history")
+                      print(e.pgerror)
+                      return -1
                   except:
                      logging.error("error loading voting_count_history")
                      return -1
