@@ -788,8 +788,8 @@ def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create
     qry = 0
     debug = 0
     error = 0
-    logging.info("pid: %s" , os.getpid())
-    logging.info("Active List: %s" , str(myactivelist))
+    logging.info("MR: pid: %s" , os.getpid())
+    logging.info("MR: Active List: %s" , str(myactivelist))
    
     if create_new_connection : 
         my_query = query_db
@@ -821,23 +821,23 @@ def multi_row_returns(MYDSN,time_to_run,sleep_timer,create_new_connection,create
              my_query = query_db
              parm1 = psycopg2.connect(MYDSN)
                 
-             search_actor = random.choice(list_actors)
-             search_title = random.choice(list_tiles)
-             search_id = random.choice(list_ids)
-             year1 = random.randrange(1900, 2015, 1)
-             year2 = random.randrange(1900, 2015, 1)
+         search_actor = random.choice(list_actors)
+         search_title = random.choice(list_tiles)
+         search_id = random.choice(list_ids)
+         year1 = random.randrange(1900, 2015, 1)
+         year2 = random.randrange(1900, 2015, 1)
          
 
-             x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
-             x = func_top_movies_year(my_query,parm1,(year1,))
-             x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
-             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
-             x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
-             mycount[wid] = mycount[wid] + 1
-             mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+         x = func_find_actors_and_characters_by_title(my_query,parm1,(random.choice(list_tiles),))
+         x = func_top_movies_year(my_query,parm1,(year1,))
+         x = func_movies_by_director(my_query,parm1,random.choice(default_values['directors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_50_movies']))
+         x = func_movies_by_actor_with_many(my_query,parm1,random.choice(default_values['actors_with_200_movies']))
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
          
        except: 
-            logging.info("error in read only workload")
+            logging.info("error in multi-row only workload")
             logging.info('pid:', os.getpid())
             error = 1
          

@@ -431,7 +431,7 @@ try:
     except: 
         logging.warn('problem with settings file')
         
-    if (last_settings != new_settings):
+    if (last_settings != new_settings and args.special == 0):
         logging.info('Config Change Detected!')
         logging.info(active_threads_list())
         logging.info('++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
