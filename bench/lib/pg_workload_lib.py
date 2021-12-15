@@ -1270,7 +1270,7 @@ def func_pk_varchar (MYDSN) :
 
 def func_load_voting_count_hisory(config) :
                   load_etl = "insert into voting_count_history select ai_myid, now(), title, imdb_id, comment_count, max_rate, avg_rate, upvotes, downvotes from view_voting_counts"
-                  purge_old = "delete from voting_count_history where store_time < now() - interval 30 day"
+                  purge_old = "delete from voting_count_history where store_time < current_date - interval '30' day"
                   logging.info('executing load of count history') 
                   try:
                      x = query_db_new_connect(config, load_etl,(),0)
