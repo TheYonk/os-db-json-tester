@@ -398,14 +398,14 @@ if (args.time > 0):
    
 
 try: 
+ rpttime = 300
  while True:
     current_time=time.perf_counter()
     xt = current_time - start_time
-    rpttime = 120
-         
     if (args.time > 0):
+        if(args.time < 1200) :
+          rpttime=60          
         if (xt > args.time ):
-            rpttime=300
             logging.info('Reached time to shutdown')
             logging.info('FINAL: Active Counts: %s',countlist )
             logging.info('FINAL: Timing Counts: %s',timinglist )
