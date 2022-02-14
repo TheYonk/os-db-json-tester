@@ -49,9 +49,27 @@ def query_db(cnx,sql,parms,fetch):
           time.sleep(5)
       return(x)
 
+def new_connection(config):
+    #cnx = mysql.connector.connect(**config)
+    global client_options
+    client_options = ''
+    if (mysql_driver=="mysqlclient"):
+       cnx2 = MySQLdb.connect(**config)
+       client_options =''
+    if (mysql_driver=="connector"):
+       cnx2 = mysql.connector.connect(**config)
+       client_options ='buffered=True'
+    if (mysql_driver=="pymysql"):
+       cnx2 = pymysql.connector.connect(**config)
+       client_options =''  
+    if (mysql_driver==""):
+       cnx2 = mysql.connector.connect(**config)
+       client_options =''
+    return cnx2
+    
 def query_db_new_connect(config,sql,parms,fetch):
       x=[]
-      cnx =new_connection(config)
+      cnx = new_connection(config)
       cursor = cnx.cursor()
       try:
         if parms == ():
@@ -70,20 +88,7 @@ def query_db_new_connect(config,sql,parms,fetch):
       cnx.close()
       return(x)
 
-def new_connection(config):
-    #cnx = mysql.connector.connect(**config)
-    global client_options
-    client_options = ''
-    if (mysql_driver=="mysqlclient"):
-       cnx = MySQLdb.connect(**config)
-       client_options =''
-    if (mysql_driver=="connector"):
-       cnx = mysql.connector.connect(**config)
-       client_options ='buffered=True'
-    if (mysql_driver=="pymysql"):
-       cnx = mysql.connector.connect(**config)
-       client_options =''   
-    return cnx
+
 
 
 def load_db(config): 
