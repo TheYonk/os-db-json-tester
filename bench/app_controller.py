@@ -25,7 +25,7 @@ parser.add_argument('-n', '--number-threads', dest='threads', type=int, default=
 parser.add_argument('-t', '--time', dest='time', type=int, default=-1, help='the legnth of time to run the app controller, -1 is forever the default')
 parser.add_argument('-r', '--restart', dest='verbose',action="store_true", default=0, help='do you want to restart all threads every 60 minutes, sometimes long overnight runs run into unforseen issues')
 parser.add_argument('-mc', '--mysql-client', dest='myclient',type=str, default="connector", help='the mysql client driver to use, [connector,mysqlclient]')
-user_function_list = {'website_workload':'single_user_actions_v2', 'reporting_workload':'report_user_actions', 'comments_workload':'insert_update_delete','longtrans_workload':'long_transactions', 'special_workload':'single_user_actions_special_v2', 'read_only_workload':'read_only_user_actions','json_ro_workload':'read_only_user_json_actions','list_workload':'multi_row_returns'}
+user_function_list = {'website_workload':'single_user_actions_v2', 'reporting_workload':'report_user_actions', 'comments_workload':'insert_update_delete','longtrans_workload':'long_transactions', 'special_workload':'single_user_actions_special_v2', 'read_only_workload':'read_only_user_actions','json_ro_workload':'read_only_user_json_actions','list_workload':'multi_row_returns', 'logging_workload': 'insert_update_logs' }
                        
 
 args = parser.parse_args()
@@ -69,7 +69,7 @@ for key in user_function_list:
     worker_threads.append('chosen_lib.'+user_function_list[key])
     wid_lookup[key] = len(thread_list)
     thread_list.append([])
-activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
+activelist = [Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict(),Manager().dict()] 
 timinglist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
 countlist = Manager().list([0,0,0,0,0,0,0,0,0,0,0])
 logging.debug(wid_lookup)
@@ -133,7 +133,11 @@ try:
     settings['list_workload']= settings['list_workload'] + 0
 except:
    settings['list_workload'] =0
-    
+try:
+    settings['logging_workload']= settings['logging_workload'] + 0
+except:
+   settings['logging_workload'] =0  
+  
 MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host']
 
 config = {
@@ -186,6 +190,10 @@ def reload_config(myfile):
            settings['list_workload']= settings['list_workload'] + 0
        except:
           settings['list_workload'] =0
+       try:
+           settings['logging_workload']= settings['logging_workload'] + 0
+       except:
+          settings['logging_workload'] =0
        return settings
     except:
         logging.error('Problem reading file: %s ', myfile)
@@ -237,7 +245,7 @@ def active_threads_list():
 def spawn_app_nodes(count,wid):
      logging.debug("inside spawn_app_nodes")
      #worker_threads = ['chosen_lib.single_user_actions_v2','chosen_lib.report_user_actions','chosen_lib.insert_update_delete','chosen_lib.long_transactions']
-     worker_desc = ['General Website','Reporting','Chat','Long Transactions','Special Workload','Read_only_workload','json','multi-row ro']
+     worker_desc = ['General Website','Reporting','Chat','Long Transactions','Special Workload','Read_only_workload','json','multi-row ro','logging heavy']
      logging.debug("WID: %s", wid)
      logging.debug("adding workers for: %s", worker_threads[wid])
     
@@ -309,6 +317,7 @@ def startup_workers():
         spawn_app_nodes(settings['special_workload'], wid_lookup['special_workload'])
         spawn_app_nodes(settings['read_only_workload'], wid_lookup['read_only_workload'])
         spawn_app_nodes(settings['list_workload'], wid_lookup['list_workload'])
+        spawn_app_nodes(settings['logging_workload'], wid_lookup['logging_workload'])
         if (args.nopmm == 0 ) :
             os.system('pmm-admin annotate "Start Up Workload: ' + args.myfile + ' : ' + active_threads_list() + '" --tags "Benchmark, Workload Change,'+ tag +'"')
 def full_stop_workload():
@@ -499,6 +508,10 @@ try:
                     spawn_app_nodes(new_settings['special_workload'] - last_settings['special_workload'],wid_lookup['special_workload'])
                 if (new_settings['read_only_workload'] - last_settings['read_only_workload'] != 0):
                     spawn_app_nodes(new_settings['read_only_workload'] - last_settings['read_only_workload'],wid_lookup['read_only_workload'])
+                if (new_settings['logging_workload'] - last_settings['logging_workload'] != 0):
+                    spawn_app_nodes(new_settings['logging_workload'] - last_settings['logging_workload'],wid_lookup['logging_workload'])
+
+
            logging.info(active_threads_list())
         except Exception as e:
             logging.error('unknown issue')

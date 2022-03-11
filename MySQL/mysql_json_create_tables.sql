@@ -125,6 +125,22 @@ CREATE TABLE `voting_count_history` (
   KEY `ai_myid` (`ai_myid`)
 ) ENGINE=InnoDB;
 
+create table movies_viewed_logs (
+	  view_id int auto_increment primary key, 
+	  ai_myid int not null,
+	  imdb_id varchar(32), 
+          watched_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	  watched_user_id int,
+	  time_watched_sec int,
+	  encoded_data varchar(500),
+          json_payload json,
+	  json_imdb_id varchar(255) generated always as (`json_payload` ->> '$.imdb_id')
+) engine=innodb;	
+
+CREATE INDEX m_view_idx1 ON movies_viewed_logs (ai_myid,watched_time);
+CREATE INDEX m_view_idx2 ON movies_viewed_logs (watched_time);
+CREATE INDEX m_view_idx3 ON movies_viewed_logs (watched_user_id);
+
 
 create index idx_comments_id on movies_normalized_user_comments(ai_myid,comment_add_time);
 create index idx_comments_com_time on movies_normalized_user_comments(comment_add_time);

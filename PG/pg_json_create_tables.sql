@@ -160,6 +160,23 @@ alter table voting_count_history add primary key (title,ai_myid,store_time);
 CREATE INDEX cnt_hist_ai_idx ON voting_count_history (ai_myid);
 
 
+
+create table movies_viewed_logs (
+	  view_id serial primary key,
+	  ai_myid int,
+	  imdb_id varchar(32), 
+          watched_time timestamp WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+	  watched_user_id int,
+	  time_watched_sec int,
+	  encoded_data varchar(500),
+          json_payload jsonb,
+	  json_imdb_id varchar(255) generated always as (json_payload ->> 'imdb_id') stored	
+);	
+
+CREATE INDEX m_view_idx1 ON movies_viewed_logs (ai_myid,watched_time);
+CREATE INDEX m_view_idx2 ON movies_viewed_logs (watched_time);
+CREATE INDEX m_view_idx3 ON movies_viewed_logs (watched_user_id);
+
 GRANT all privileges on all tables in schema public to movie_json_user; 	
 GRANT all privileges on all sequences in schema public to movie_json_user; 	
 	
