@@ -10,6 +10,7 @@ import MySQLdb
 import mysql.connector
 import pymysql
 import signal
+import json 
 
 mysql_driver = ''
 
@@ -44,9 +45,13 @@ def query_db(cnx,sql,parms,fetch):
           z = sys.exc_info()
           exc_type, exc_obj, exc_tb = sys.exc_info()
           logging.error("systems: %s",z )
+
       except KeyboardInterrupt: 
           logging.info('Caught Interupt...')
           time.sleep(5)
+      except: 
+          print(cursor._last_executed)
+          raise
       return(x)
 
 def new_connection(config):
@@ -84,6 +89,9 @@ def query_db_new_connect(config,sql,parms,fetch):
           z = sys.exc_info()
           exc_type, exc_obj, exc_tb = sys.exc_info()
           logging.error("systems: %s",z )
+      except: 
+          print(cursor._last_executed)
+          raise     
       cnx.commit()
       cnx.close()
       return(x)
@@ -968,6 +976,90 @@ def read_only_user_json_actions(config,time_to_run,sleep_timer,create_new_connec
     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
     del myactivelist[os.getpid()]
     exit()
+
+
+def insert_update_logs (config,time_to_run,sleep_timer,create_new_connection,create_new_connection_per_qry,list_actors,list_tiles,list_ids,ai_myids,default_values,myactivelist,mytime,mycount,wid):
+   try:    
+    current_time = 0
+    start_time = 0
+    qry = 0
+    debug = 0
+    error = 0
+    logging.info("MR: pid: %s" , os.getpid())
+    logging.info("MR: Active List: %s" , str(myactivelist))
+    count = 0
+   
+    if create_new_connection : 
+        my_query = query_db
+        parm1 = new_connection(config)
+        
+    else :  
+        if create_new_connection_per_qry :
+           my_query = query_db_new_connect
+           parm1 = config
+        else : 
+           my_query = query_db
+           parm1 = new_connection(config)
+           parm1.commit()  
+           
+    letters = string.ascii_lowercase
+      
+    start_time = time.perf_counter()
+    count = 0
+    
+    while myactivelist[os.getpid()] == 1 : 
+       current_time = time.perf_counter()
+       count = count +1;            
+       try:
+         if error == 1 :
+             logging.info('Starting Over! ', os.getpid())
+             error = 0
+         current_time = time.perf_counter() 
+         if create_new_connection : 
+              parm1.commit()  
+              parm1.close()
+              my_query = query_db
+              parm1 = new_connection(config)
+         
+         x = func_log_movie_view (my_query,parm1,config,ai_myids,100)
+         x = func_del_log_movie_view (my_query,parm1,config,list_ids)
+
+         mycount[wid] = mycount[wid] + 1
+         mytime[wid] =  round(mytime[wid] +(time.perf_counter() -current_time),4)
+       
+         
+       except Exception as e:
+           logging.error('unknown issue')
+           logging.error("error: %s", e)
+           z = sys.exc_info()
+           exc_type, exc_obj, exc_tb = sys.exc_info()
+           logging.error("systems: %s",z )
+           fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+           logging.error(exc_type, fname, exc_tb.tb_lineno)    
+           
+       except: 
+            logging.info("error in loggin workload")
+            logging.info('pid:', os.getpid())
+            
+            error = 1
+         
+ 
+    if not create_new_connection_per_qry :
+        parm1.commit()
+    logging.info("Ending Loop....")
+    logging.info("Started at..." + str( start_time))
+    logging.info("Ended at..." + str( time.perf_counter()))
+    mytime1 = round(time.perf_counter()-start_time,3);
+    timeper = round(mytime1/count,2)
+    logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )
+    del myactivelist[os.getpid()]
+    exit()
+   except:
+     logging.error("This multi-row thread failed.... ooooops")  
+     mytime1 = round(time.perf_counter()-start_time,3);
+     timeper = round(mytime1/count,2)
+     logging.info("Thread:  %s Times looped: %s Time per Loop : %s total time: %s", wid, count, timeper, mytime1  )     
+
     
     
 def func_find_movie_by_actor (qry_func,parm1,actor_name) :
@@ -1460,9 +1552,50 @@ def func_find_movies_by_id_json (qry_func,parm1,id) :
 def func_find_actors_and_characters_by_title_json (qry_func,parm1,title_name) :
         find_movies_by_title = "select title, imdb_rating, actor_name, actor_character from movies_normalized_meta a, movies_normalized_cast b,  movies_normalized_actors c where a.ai_myid=b.ai_myid and b.ai_actor_id = c.ai_actor_id and title =%s"
         x = qry_func(parm1, find_movies_by_title,title_name,1)
-        return x  
-        
-        
+        return x
+          
+def func_find_movies_by_ai_id_json (qry_func,parm1,id) :
+        simulate_finding_a_movie_record = "select ai_myid, imdb_id, year, title, json_column from movies_normalized_meta where ai_myid = %s"
+        x = qry_func(parm1, simulate_finding_a_movie_record,(id,),1)
+        return x      
+                
+def func_log_movie_view (qry_func,parm1,config,list_ids,movie_views) :
+     myconnect = new_connection(config)
+     mycursor = myconnect.cursor(client_options)
+     #myconnect = new_connection(MYDSN)
+     #mycursor = myconnect.cursor()
+     letters = string.ascii_lowercase
+     my_query = query_db_new_connect
+     #parm1 = MYDSN
+     
+     i = 0
+     while i < movie_views :
+         i = i + 1
+         encoded_values = func_generate_comment(letters,20,50)
+         watch_time = random.randrange(1, 5000)
+         watch_user_id = random.randrange(1, 500000)
+         search_id = random.choice(list_ids)
+         results = func_find_movies_by_ai_id_json(my_query,config,search_id)
+
+         mid = results[0][0]
+         mjson = results[0][4]
+         my_imdb = results[0][1]
+         simulate_comment_on_movie = "insert into movies_viewed_logs (ai_myid, imdb_id, watched_user_id, time_watched_sec, encoded_data, json_payload) values ( %s, %s, %s, %s, %s, %s )" 
+         #print(mid,my_imdb,watch_user_id,watch_time,encoded_values,mjson)
+   
+         mycursor.execute(simulate_comment_on_movie, (mid,my_imdb,watch_user_id,watch_time,encoded_values,json.dumps(mjson)))
+     
+     myconnect.commit();             
+     return i;
+
+def func_del_log_movie_view (qry_func,parm1,config,list_ids) :
+
+     myconnect = new_connection(config)
+     mycursor = myconnect.cursor(client_options)
+     delete = "delete from movies_viewed_logs where watched_time < current_timestamp - interval 15 minute" 
+     mycursor.execute(delete)
+     myconnect.commit();             
+     return 1;        
         
 def func_create_drop_title_index (config) :
         val = func_find_index(config,'movies_normalized_meta','idx_nmm_title')

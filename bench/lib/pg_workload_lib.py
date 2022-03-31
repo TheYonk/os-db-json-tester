@@ -1503,7 +1503,7 @@ def func_create_drop_year_index (mydsn) :
         
 def func_create_title_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
-        logging.info('value: ', val)
+        logging.info('value: ' + str(val[0][0]))
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title"
         
@@ -1518,7 +1518,7 @@ def func_create_title_index (mydsn) :
                 
 def func_drop_title_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_title')
-        logging.info('value: ', val)
+        logging.info('value: ' + str(val[0][0]))
         create_index = "create index idx_nmm_title on movies_normalized_meta (title) "
         drop_index = "drop index idx_nmm_title"
         
@@ -1533,7 +1533,7 @@ def func_drop_title_index (mydsn) :
          
 def func_create_year_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
-        logging.info('value: ', val)
+        logging.info('value: ' + str(val[0][0]))
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year"
         
@@ -1547,7 +1547,7 @@ def func_create_year_index (mydsn) :
           
 def func_drop_year_index (mydsn) :
         val = func_find_index(mydsn,'movies_normalized_meta','idx_nmm_year')
-        logging.info('value: ', val)
+        logging.info('value: ' + str(val[0][0]))
         create_index = "create index idx_nmm_year on movies_normalized_meta (year) "
         drop_index = "drop index idx_nmm_year"
         
@@ -1561,7 +1561,7 @@ def func_drop_year_index (mydsn) :
         
 def func_add_actor_year_index (mydsn) :  
          val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
-         logging.info('value: ', val)
+         logging.info('value: ' + str(val[0][0]))
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx"
         
@@ -1575,7 +1575,7 @@ def func_add_actor_year_index (mydsn) :
          
 def func_drop_actor_year_index (mydsn) :
          val = func_find_index(mydsn,'movies_normalized_actors','actor_name_idx')
-         logging.info('value: ', val)
+         logging.info('value: ' + str(val[0][0]))
          create_index = "create index actor_name_idx on movies_normalized_actors (actor_name) "
          drop_index = "drop index actor_name_idx"
         

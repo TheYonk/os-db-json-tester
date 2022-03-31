@@ -23,6 +23,7 @@ parser.add_argument('-l', '--longtrans', dest='longtrans', type=int, default=0, 
 parser.add_argument('-ro', '--readonly', dest='readonly', type=int, default=0, help='# of readonly users')
 parser.add_argument('-li', '--listworkload', dest='listw', type=int, default=0, help='# of users returning multi-row queries')
 parser.add_argument('-sp', '--special', dest='special', type=int, default=0, help='# of users runing some experimental special stuff')
+parser.add_argument('-au', '--audit', dest='audit', type=int, default=0, help='# of users runing audit/logging type workload')
 
 parser.add_argument('-a', '--active', dest='active', action="store_true", default=0, help='database we are targeting')
 
@@ -56,6 +57,7 @@ for settings in settings_full['databases']:
                  "read_only_workload" : args.readonly,
                  "list_workload" : args.listw,
                  "special_workload" : args.special,
+                 "logging_workload" : args.audit,
                  "title_idx" : 1,
              	 "year_idx" : 1
              }

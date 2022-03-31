@@ -36,6 +36,11 @@ parser.add_argument('-mw', '--max_web', dest='max_web', type=int, default="30", 
 parser.add_argument('-mr', '--max_report', dest='max_report', type=int, default="15", help='max threads for reporting workload')
 parser.add_argument('-mc', '--max_chat', dest='max_chat', type=int, default="30", help='max threads for chat workload')
 parser.add_argument('-ml', '--max_long', dest='max_long', type=int, default="10", help='max threads for long workload')
+parser.add_argument('-mro', '--max_read', dest='max_read', type=int, default="30", help='max threads for web workload')
+parser.add_argument('-mmr', '--max_multi', dest='max_mr', type=int, default="30", help='max threads for reporting workload')
+parser.add_argument('-ms', '--max_special', dest='max_spec', type=int, default="30", help='max threads for chat workload')
+parser.add_argument('-ma', '--max_audit', dest='max_audit', type=int, default="30", help='max threads for long workload')
+parser.add_argument('-db', '--db', dest='db', type=str, default="off", help='override starting db')
 
 args = parser.parse_args()
 
@@ -180,7 +185,7 @@ def build_config_command(mydatabase):
        active_flag = " -a"
     else :
        active_flag = " "
-    x = 'python3 config_generator.py -n '+ mydatabase +' -w ' + str(settings['databases'][mydatabase]['website_workload'])  +' -r ' + str(settings['databases'][mydatabase]['reporting_workload']) +' -c ' + str(settings['databases'][mydatabase]['comments_workload'])  + ' -l ' + str(settings['databases'][mydatabase]['longtrans_workload']) + active_flag + ' & '
+    x = 'python3 config_generator.py -n '+ mydatabase +' -w ' + str(settings['databases'][mydatabase]['website_workload'])  +' -r ' + str(settings['databases'][mydatabase]['reporting_workload']) +' -c ' + str(settings['databases'][mydatabase]['comments_workload'])  + ' -l ' + str(settings['databases'][mydatabase]['longtrans_workload']) + ' -au ' + str(settings['databases'][mydatabase]['logging_workload']) + ' -ro ' + str(settings['databases'][mydatabase]['read_only_workload']) + ' -li ' + str(settings['databases'][mydatabase]['list_workload']) + ' -sp ' + str(settings['databases'][mydatabase]['special_workload'])  + active_flag + ' & '
     return x
     
 def reset():
@@ -251,6 +256,9 @@ if args.interface == 'serial':
  try:      
      time.sleep(10)
      arduino.flushInput()
+     if (args.db != 'off') :
+         mydatabase = args.db
+     
      while (True):
          x = arduino.readline().decode().strip()
          #decoded_bytes = float(x[0:len(x)-2].decode("utf-8"))
@@ -297,6 +305,34 @@ if args.interface == 'serial':
                     t = build_config_command(mydatabase)
                     os.system(t);     
                     logging.debug("Config Generator Command : %s", t)
+                 if  (mystuff[2] == 'change_special_workload'):
+                   threads = int(round(float(mystuff[3])/100 * int(args.max_spec)))   
+                   settings['databases'][mydatabase]['special_workload']                              = threads   
+                   logging.debug("Current Settings: %s", settings['databases'][mydatabase])
+                   t = build_config_command(mydatabase)
+                   os.system(t);     
+                   logging.debug("Config Generator Command : %s", t)
+                 if  (mystuff[2] == 'change_readonly_workload'):
+                   threads = int(round(float(mystuff[3])/100 * int(args.max_read)))   
+                   settings['databases'][mydatabase]['read_only_workload']  = threads   
+                   logging.debug("Current Settings: %s", settings['databases'][mydatabase])
+                   t = build_config_command(mydatabase)
+                   os.system(t);     
+                   logging.debug("Config Generator Command : %s", t)
+                 if  (mystuff[2] == 'change_audit_workload'):
+                   threads = int(round(float(mystuff[3])/100 * int(args.max_audit)))   
+                   settings['databases'][mydatabase]['logging_workload']  = threads   
+                   logging.debug("Current Settings: %s", settings['databases'][mydatabase])
+                   t = build_config_command(mydatabase)
+                   os.system(t);     
+                   logging.debug("Config Generator Command : %s", t)
+                 if  (mystuff[2] == 'change_multirow_workload'):
+                   threads = int(round(float(mystuff[3])/100 * int(args.max_mr)))   
+                   settings['databases'][mydatabase]['list_workload']  = threads   
+                   logging.debug("Current Settings: %s", settings['databases'][mydatabase])
+                   t = build_config_command(mydatabase)
+                   os.system(t);     
+                   logging.debug("Config Generator Command : %s", t)
              
          #time.sleep(1)
          
