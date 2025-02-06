@@ -14,6 +14,9 @@ import time
 import sys
 import signal
 
+# Fix for running on Mac with Python >= 3.8
+if __name__ == "__main__":
+  multiprocessing.set_start_method("fork")
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', '--file', dest='myfile', type=str, default="", help='the config file to use')
