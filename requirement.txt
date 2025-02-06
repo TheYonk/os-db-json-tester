@@ -1,0 +1,4 @@
+mysql-connector-python==9.0.0
+mysqlclient==2.2.7
+psycopg2==2.9.10
+PyMySQL==1.1.1
