@@ -13,12 +13,12 @@ Install rest of dependencies
 ## Kick off the dataload test
 `python bench/app_controller.py -f ./bench/app_config/xxx.json`
 
-## Containerize 
+## Containerize (Postgres only)
 
 Packaging this as container makes it portable, this is really build once and run anywhere.  
 
 
-# How to build it.
+### How to build it.
 
 To build run the below command in the root of the repo
 
@@ -45,7 +45,7 @@ b26995e9f45f: Layer already exists
 latest: digest: sha256:5288fc18f671c1e595dd81f11f214de35473758b48f44b5b8e2e1a8b0023f36a size: 856
 ```
 
-# How to run this as a container locally
+### How to run it locally
 
 This container depends on 4 envvar
 
@@ -102,9 +102,9 @@ loose the `-it` from the command to run in the background.
 
 ## How to deploy in a kube cluster
 
-If postgres is running in kube what are the odds its application will be running outside in a VM? :p , lets run it next to db
+If postgres is running in kube what are the odds its application will outside in a VM? :p , lets run it next to the db
 
-The applies a deployment and configman to the target kube cluster, the target cluster should be already reachable from your `kubectl`
+The applies a deployment and configmap to the target kube cluster, the target kube should be already reachable from your `kubectl`
 
 ### Change the config
 
