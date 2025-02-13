@@ -7,10 +7,10 @@ resources:
 configMapGenerator:
   - name: db-env-config
     literals:
-      - HOSTNAME=hostname
-      - USERNAME=username
-      - PASSWORD=password
-      - DATABASE=dbname
+      - HOSTNAME=p-dyy0mohd22-a-rw-external-1bcdca0bec7042fe.elb.us-west-2.amazonaws.com
+      - USERNAME=edb_admin
+      - PASSWORD=mattdemo123!
+      - DATABASE=bdrdb
 
 patches:
   - path: toleration-patch.yaml
