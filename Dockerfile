@@ -13,6 +13,8 @@ RUN apt update && apt install -y \
 	default-libmysqlclient-dev \
 	libpq-dev \
 	build-essential \
+	jq \
+	gettext \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Install the dependencies
@@ -25,5 +27,5 @@ COPY . .
 ENV PYTHONUNBUFFERED=1
 
 # Specify the command to run the application
-CMD ["python", "bench/app_controller.py", "-f", "./bench/app_config/pg1.json.sample"]
+CMD ["./start_bench.sh"]
 

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: os-db-json-tester
+  labels:
+    app: os-db-json-tester
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: os-db-json-tester
+  template:
+    metadata:
+      labels:
+        app: os-db-json-tester
+    spec:
+      containers:
+      - name: os-db-json-tester
+        image: dhilipkumars/os-db-json-tester:latest
+        envFrom:
+        - configMapRef:
+            name: db-env-config
+        ports:
+        - containerPort: 80
+
