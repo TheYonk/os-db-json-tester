@@ -102,11 +102,12 @@ loose the `-it` from the command to run in the background.
 
 ## How to deploy in a kube cluster
 
-If postgres is running in kube what are the odds its application will outside in a VM? :p , lets run it next to the db
+If postgres is running in kube what are the odds its application will be outside in a VM? :p , lets run it next to the db
 
 The applies a deployment and configmap to the target kube cluster, the target kube should be already reachable from your `kubectl`
 
 ### Change the config
+
 
 Change the envvar values in the below config file
 ```
@@ -136,13 +137,20 @@ for env's that dont need to tolerate nodes, simply remove it from the `kustomiza
 
 ### How to deploy
 
+set the namespace env
+```
+export $Namespace=<namespace name>
+```
+
+simply apply to the target namespace
+
 ```
 $ k -n ${Namespace} apply -k .
 configmap/db-env-config-7dktg45g2c created
 deployment.apps/os-db-json-tester created
 ```
 
-you can check if its running
+you can check if its running by
 ```
 $ k -n ${Namespace} get pods -l app=os-db-json-tester
 NAME                                READY   STATUS    RESTARTS   AGE
