@@ -1,0 +1,4 @@
+HOSTNAME=localhost
+USERNAME=admin
+PASSWORD=password
+DATABASE=public

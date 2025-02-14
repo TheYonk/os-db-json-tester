@@ -13,7 +13,7 @@ configMapGenerator:
       - DATABASE=bdrdb
 
 patches:
-  - path: toleration-patch.yaml
+  - path: deploy-patch.yaml
     target:
       kind: Deployment
       name: os-db-json-tester

@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: os-db-json-tester
+spec:
+  template:
+    spec:
+      tolerations:
+      - key: "edbaiplatform.io/postgres"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      containers:
+      - name: os-db-json-tester
+        resources:
+          requests:
+            cpu: "250m"   # Requests 250 millicores (0.25 CPU)
+            memory: "256Mi" # Requests 256 MiB RAM
+          limits:
+            cpu: "4.0"   # Limits to 4 cores (4 CPU)
+            memory: "1024Mi" # Limits to 1024 MiB RAM
+
