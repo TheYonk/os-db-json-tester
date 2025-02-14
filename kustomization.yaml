@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+
+configMapGenerator:
+  - name: db-env-config
+    literals:
+      - HOSTNAME=p-dyy0mohd22-a-rw-external-1bcdca0bec7042fe.elb.us-west-2.amazonaws.com
+      - USERNAME=edb_admin
+      - PASSWORD=mattdemo123!
+      - DATABASE=bdrdb
+
+patches:
+  - path: deploy-patch.yaml
+    target:
+      kind: Deployment
+      name: os-db-json-tester
