@@ -184,3 +184,6 @@ $k -n ${Namespace} delete -k .
 configmap "db-env-config-7dktg45g2c" deleted
 deployment.apps "os-db-json-tester" deleted
 ```
+=======
+`python bench/app_controller.py -f ./bench/app_config/xxx.json`
+
