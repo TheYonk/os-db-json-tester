@@ -140,8 +140,15 @@ try:
     settings['logging_workload']= settings['logging_workload'] + 0
 except:
    settings['logging_workload'] =0  
-  
-MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host']
+
+
+if 'port' in settings:
+    MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host'] + " port=" + settings['port']
+    print("Port is set:", settings['port'])
+else:
+    MYDSN = "dbname=" + settings['database'] +" user="+ settings['username'] + " password=" + settings['password'] + " host=" + settings['host']
+    print("Port is not set")
+
 
 config = {
   'user': settings['username'],
